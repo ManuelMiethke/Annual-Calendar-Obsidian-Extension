@@ -39,7 +39,7 @@ export class AnnualMatrixView extends ItemView {
   }
 
   getDisplayText(): string {
-    return "Annual Matrix";
+    return "Date Grid";
   }
 
   getIcon(): string {
@@ -77,7 +77,7 @@ export class AnnualMatrixView extends ItemView {
     const titleGroup = toolbar.createDiv({ cls: "annual-matrix-toolbar-group" });
     titleGroup.createEl("h2", {
       cls: "annual-matrix-title",
-      text: `Annual Matrix ${this.displayYear}`,
+      text: `Date Grid ${this.displayYear}`,
     });
 
     const controls = toolbar.createDiv({ cls: "annual-matrix-toolbar-group annual-matrix-toolbar-controls" });
@@ -193,7 +193,7 @@ export class AnnualMatrixView extends ItemView {
   private renderMatrixGrid(container: HTMLElement): void {
     const gridWrapper = container.createDiv({ cls: "annual-matrix-grid-wrapper" });
     const grid = gridWrapper.createDiv({ cls: "annual-matrix-grid" });
-    grid.style.setProperty("--annual-matrix-columns", "8rem repeat(31, minmax(2.2rem, 1fr))");
+    grid.style.setProperty("--annual-matrix-columns", "5rem repeat(31, minmax(2.8rem, 1fr))");
 
     const corner = grid.createDiv({ cls: "annual-matrix-header-cell annual-matrix-corner-cell" });
     setIcon(corner, "calendar-range");
@@ -230,49 +230,40 @@ export class AnnualMatrixView extends ItemView {
 
   private renderFixedWeekGrid(container: HTMLElement): void {
     const gridWrapper = container.createDiv({ cls: "annual-matrix-grid-wrapper" });
-    const sections = gridWrapper.createDiv({ cls: "annual-matrix-fixed-week-grid" });
+    const grid = gridWrapper.createDiv({ cls: "annual-matrix-fixed-week-grid" });
+    grid.style.setProperty("--annual-matrix-columns", "5rem repeat(31, minmax(2.8rem, 1fr))");
 
     const monthNames = getMonthNames();
     const weekdayNames = getWeekdayNames();
 
-    for (let monthIndex = 0; monthIndex < 12; monthIndex += 1) {
-      const section = sections.createDiv({ cls: "annual-matrix-fixed-month" });
+    const corner = grid.createDiv({ cls: "annual-matrix-header-cell annual-matrix-corner-cell" });
+    setIcon(corner, "calendar-range");
 
-      const header = section.createDiv({ cls: "annual-matrix-fixed-month-header" });
-      header.createEl("h3", {
-        cls: "annual-matrix-fixed-month-title",
+    for (let day = 1; day <= 31; day += 1) {
+      const weekdayIndex = this.getWeekdayIndexForColumn(day);
+      grid.createDiv({
+        cls: "annual-matrix-header-cell annual-matrix-day-header",
+        text: weekdayNames[weekdayIndex],
+      });
+    }
+
+    for (let monthIndex = 0; monthIndex < 12; monthIndex += 1) {
+      grid.createDiv({
+        cls: "annual-matrix-month-label",
         text: monthNames[monthIndex],
       });
 
-      const monthGrid = section.createDiv({ cls: "annual-matrix-fixed-month-grid" });
-      monthGrid.style.setProperty("--annual-fixed-week-columns", "repeat(7, minmax(2.2rem, 1fr))");
-      monthGrid.style.setProperty("--annual-fixed-week-rows", "auto repeat(6, minmax(0, 1fr))");
-
-      for (const weekdayName of weekdayNames) {
-        monthGrid.createDiv({
-          cls: "annual-matrix-fixed-weekday-header",
-          text: weekdayName,
-        });
-      }
-
+      const startWeekdayOffset = this.getWeekdayOffsetForMonthStart(monthIndex);
       const daysInMonth = getDaysInMonth(this.displayYear, monthIndex);
-      const firstWeekdayOffset = (new Date(this.displayYear, monthIndex, 1).getDay() + 6) % 7;
 
-      for (let weekdayColumn = 0; weekdayColumn < 7; weekdayColumn += 1) {
-        monthGrid.createDiv({
-          cls: "annual-matrix-fixed-weekday-header",
-          text: weekdayNames[weekdayColumn],
-        });
-      }
-
-      for (let slot = 0; slot < 42; slot += 1) {
-        const day = slot - firstWeekdayOffset + 1;
+      for (let column = 1; column <= 31; column += 1) {
+        const day = column - startWeekdayOffset;
         if (day < 1 || day > daysInMonth) {
-          monthGrid.createDiv({ cls: "annual-matrix-fixed-week-empty-cell" });
+          grid.createDiv({ cls: "annual-matrix-day-cell is-invalid", attr: { "aria-disabled": "true" } });
           continue;
         }
 
-        this.createDateCell(monthGrid, monthIndex, day);
+        this.createDateCell(grid, monthIndex, day);
       }
     }
   }
@@ -375,6 +366,14 @@ export class AnnualMatrixView extends ItemView {
     const [year, month, day] = isoDate.split("-").map((part) => Number.parseInt(part, 10));
     const shifted = new Date(year, month - 1, day + offsetDays);
     return formatDateYYYYMMDD(shifted.getFullYear(), shifted.getMonth(), shifted.getDate());
+  }
+
+  private getWeekdayOffsetForMonthStart(monthIndex: number): number {
+    return (new Date(this.displayYear, monthIndex, 1).getDay() + 6) % 7;
+  }
+
+  private getWeekdayIndexForColumn(column: number): number {
+    return (column - 1) % 7;
   }
 
   private renderAnnualBlockPanel(container: HTMLElement): void {

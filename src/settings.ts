@@ -52,10 +52,10 @@ export class AnnualMatrixSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName("View mode")
-      .setDesc("Choose between the current annual matrix and a fixed-week layout.")
+      .setDesc("Choose between the Date Grid and a fixed-week layout.")
       .addDropdown((dropdown) =>
         dropdown
-          .addOption("matrix", "Current matrix")
+          .addOption("matrix", "Date Grid")
           .addOption("fixed-week", "Fixed week")
           .setValue(this.plugin.settings.viewMode)
           .onChange(async (value) => {

@@ -1,16 +1,16 @@
 const MONTH_NAMES = [
-  "January",
-  "February",
-  "March",
-  "April",
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
   "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
 ] as const;
 
 export function isLeapYear(year: number): boolean {
@@ -92,7 +92,7 @@ export function getMonthNames(): readonly string[] {
   return MONTH_NAMES;
 }
 
-const WEEKDAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
+const WEEKDAY_NAMES = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"] as const;
 
 export function getWeekdayNames(): readonly string[] {
   return WEEKDAY_NAMES;
