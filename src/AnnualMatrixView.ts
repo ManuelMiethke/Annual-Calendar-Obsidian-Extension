@@ -64,6 +64,7 @@ export class AnnualMatrixView extends ItemView {
     contentEl.addClass("annual-matrix-view");
 
     this.renderToolbar(contentEl);
+    this.renderAnnualBlockPanel(contentEl);
     this.renderGrid(contentEl);
   }
 
@@ -266,6 +267,84 @@ export class AnnualMatrixView extends ItemView {
           await this.refresh();
         });
       }
+    }
+  }
+
+  private renderAnnualBlockPanel(container: HTMLElement): void {
+    const blocks = this.plugin.getAnnualBlocksForYear(this.displayYear);
+    const panel = container.createDiv({ cls: "annual-matrix-block-panel" });
+
+    const header = panel.createDiv({ cls: "annual-matrix-block-panel-header" });
+    header.createEl("h3", {
+      cls: "annual-matrix-block-panel-title",
+      text: `Annual Blocks ${this.displayYear}`,
+    });
+    header.createSpan({
+      cls: "annual-matrix-block-count",
+      text: `${blocks.length}`,
+    });
+
+    if (blocks.length === 0) {
+      panel.createEl("p", {
+        cls: "annual-matrix-block-empty",
+        text: "No annual blocks for this year yet. Drag across dates or use Shift-click to create one.",
+      });
+      return;
+    }
+
+    const list = panel.createDiv({ cls: "annual-matrix-block-list" });
+
+    for (const block of blocks) {
+      const item = list.createDiv({ cls: "annual-matrix-block-item" });
+      item.style.setProperty("--annual-block-color", block.color);
+
+      const content = item.createDiv({ cls: "annual-matrix-block-content" });
+      content.addEventListener("click", () => {
+        this.selectionAnchor = block.startDate;
+        this.selectionFocus = block.endDate;
+        this.render();
+      });
+
+      const titleRow = content.createDiv({ cls: "annual-matrix-block-title-row" });
+      titleRow.createSpan({ cls: "annual-matrix-block-swatch" });
+      titleRow.createEl("strong", {
+        cls: "annual-matrix-block-item-title",
+        text: block.title,
+      });
+
+      content.createDiv({
+        cls: "annual-matrix-block-dates",
+        text:
+          block.startDate === block.endDate
+            ? block.startDate
+            : `${block.startDate} -> ${block.endDate}`,
+      });
+
+      content.createSpan({
+        cls: "annual-matrix-block-category",
+        text: block.category,
+      });
+
+      const deleteButton = item.createEl("button", {
+        cls: "annual-matrix-block-delete",
+        text: "Delete",
+        attr: {
+          type: "button",
+          "aria-label": `Delete annual block ${block.title}`,
+        },
+      });
+      deleteButton.addEventListener("click", async () => {
+        await this.plugin.removeAnnualBlock(block.id);
+        const selection = this.getSelectionRange();
+        if (
+          selection &&
+          selection.startDate === block.startDate &&
+          selection.endDate === block.endDate
+        ) {
+          this.clearSelection();
+        }
+        await this.refresh();
+      });
     }
   }
 

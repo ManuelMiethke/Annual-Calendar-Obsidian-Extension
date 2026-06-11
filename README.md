@@ -18,6 +18,7 @@ Screenshot placeholder: add a view capture after the first local build in Obsidi
 - Drag across dates or use `Shift`-click to select a range
 - Create simple annual blocks with title, category, and color
 - Persisted multi-day blocks are rendered directly in the matrix
+- Annual blocks can be reviewed and deleted in a yearly block list
 - Settings for folder paths, month language, and display toggles
 - MVP data model prepared for future annual blocks
 
@@ -37,6 +38,7 @@ Screenshot placeholder: add a view capture after the first local build in Obsidi
 - Missing notes are created automatically by default in `Daily Notes/YYYY-MM-DD.md`.
 - Drag across cells to select a range and create an annual block.
 - Or use `Shift`-click to start and finish a range selection.
+- Use the annual block list to review the current year's blocks or delete them.
 
 ## Matrix Layout
 

@@ -112,6 +112,11 @@ export default class AnnualMatrixPlugin extends Plugin {
     return nextBlock;
   }
 
+  async removeAnnualBlock(blockId: string): Promise<void> {
+    this.annualBlocks = this.annualBlocks.filter((block) => block.id !== blockId);
+    await this.savePluginData();
+  }
+
   async refreshAllViews(): Promise<void> {
     const leaves = this.app.workspace.getLeavesOfType(ANNUAL_MATRIX_VIEW_TYPE);
     await Promise.all(
