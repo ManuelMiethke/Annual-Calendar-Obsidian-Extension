@@ -1,7 +1,7 @@
 {
-  "name": "annual-matrix",
-  "version": "0.1.0",
-  "description": "A visual 12x31 annual calendar for Obsidian, inspired by year-at-a-glance planning tools.",
+  "name": "annual-calendar",
+  "version": "0.2.0",
+  "description": "A year-at-a-glance calendar plugin for Obsidian with date blocks, stamps, and two annual layouts.",
   "main": "main.js",
   "scripts": {
     "dev": "node esbuild.config.mjs",
@@ -11,10 +11,20 @@
     "obsidian",
     "plugin",
     "calendar",
-    "annual-planning"
+    "annual-planning",
+    "year-planning",
+    "date-grid"
   ],
-  "author": "Codex",
+  "author": "Manuel Miethke",
   "license": "MIT",
+  "homepage": "https://github.com/ManuelMiethke/Annual-Calendar-Obsidian-Extension",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ManuelMiethke/Annual-Calendar-Obsidian-Extension.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ManuelMiethke/Annual-Calendar-Obsidian-Extension/issues"
+  },
   "devDependencies": {
     "@types/node": "^20.16.5",
     "builtin-modules": "^4.0.0",

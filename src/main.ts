@@ -1,6 +1,6 @@
 import { Plugin, WorkspaceLeaf } from "obsidian";
 
-import { ANNUAL_MATRIX_VIEW_TYPE, AnnualMatrixView } from "./AnnualMatrixView";
+import { ANNUAL_CALENDAR_VIEW_TYPE, AnnualMatrixView } from "./AnnualMatrixView";
 import { isDateWithinRange, normalizeDateRange } from "./dateUtils";
 import { AnnualMatrixSettingTab, DEFAULT_SETTINGS } from "./settings";
 import type {
@@ -21,12 +21,12 @@ export default class AnnualMatrixPlugin extends Plugin {
     await this.loadPluginData();
 
     this.registerView(
-      ANNUAL_MATRIX_VIEW_TYPE,
+      ANNUAL_CALENDAR_VIEW_TYPE,
       (leaf) => new AnnualMatrixView(leaf, this),
     );
 
     this.addCommand({
-      id: "open-annual-matrix",
+      id: "open-annual-calendar",
       name: "Open Annual Calendar",
       callback: async () => {
         await this.activateView();
@@ -45,20 +45,20 @@ export default class AnnualMatrixPlugin extends Plugin {
   }
 
   async onunload(): Promise<void> {
-    await this.app.workspace.detachLeavesOfType(ANNUAL_MATRIX_VIEW_TYPE);
+    await this.app.workspace.detachLeavesOfType(ANNUAL_CALENDAR_VIEW_TYPE);
   }
 
   async activateView(): Promise<void> {
     const { workspace } = this.app;
     let leaf: WorkspaceLeaf | null = null;
 
-    const leaves = workspace.getLeavesOfType(ANNUAL_MATRIX_VIEW_TYPE);
+    const leaves = workspace.getLeavesOfType(ANNUAL_CALENDAR_VIEW_TYPE);
     if (leaves.length > 0) {
       [leaf] = leaves;
     } else {
       leaf = workspace.getLeaf(true);
       await leaf.setViewState({
-        type: ANNUAL_MATRIX_VIEW_TYPE,
+        type: ANNUAL_CALENDAR_VIEW_TYPE,
         active: true,
       });
     }
@@ -188,7 +188,7 @@ export default class AnnualMatrixPlugin extends Plugin {
   }
 
   async refreshAllViews(): Promise<void> {
-    const leaves = this.app.workspace.getLeavesOfType(ANNUAL_MATRIX_VIEW_TYPE);
+    const leaves = this.app.workspace.getLeavesOfType(ANNUAL_CALENDAR_VIEW_TYPE);
     await Promise.all(
       leaves.map(async (leaf) => {
         const view = leaf.view;

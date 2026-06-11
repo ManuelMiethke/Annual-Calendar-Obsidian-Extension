@@ -1,91 +1,106 @@
 # Annual Calendar
 
-A visual annual calendar for Obsidian, inspired by year-at-a-glance planning tools.
+Annual Calendar is an Obsidian plugin for year-at-a-glance planning. It shows the entire year in a single view and lets you mark date ranges as blocks, highlight important days with stamps, and switch between a classic date grid and a fixed-week layout.
 
-This plugin uses a 12x31 annual calendar grid: months as rows, days as columns.
+## What It Does
 
-Screenshot placeholder: add a view capture after the first local build in Obsidian.
+- Shows the full year at once, without horizontal scrolling
+- Offers two views:
+  - `Date Grid`: months as rows, days `1-31` as columns
+  - `Fixed Week`: months aligned to weekday columns for easier weekly scanning
+- Lets you drag across days to create multi-day blocks
+- Supports single-day or multi-day blocks with title, category, and color
+- Supports stamps with emoji and custom labels for notable dates
+- Remembers category color presets and reuses them automatically
+- Highlights today, weekends, and past dates with adjustable display toggles
+- Includes a yearly details panel to review and delete blocks and stamps
 
-## Features
+## Current UX Direction
 
-- Custom Obsidian view for a full-year 12x31 annual calendar
-- Months on the left, days `1-31` across the top
-- Invalid dates stay visible but disabled
-- Click a valid date to open or create its daily note
-- Existing daily notes are marked in the grid
-- Optional highlighting for weekends, today, and past dates
-- Year navigation with previous, next, today, and direct year input
-- Drag across dates or use `Shift`-click to select a range
-- Create simple annual blocks with title, category, and color
-- Persisted multi-day blocks are rendered directly in the calendar
-- Annual blocks can be reviewed and deleted in a yearly block list
-- Settings for folder paths, month language, and display toggles
-- MVP data model prepared for future annual blocks
+The plugin is optimized for planning and visual scanning, not for dense daily scheduling. The focus is:
 
-## Installation for Local Development
+- see the whole year immediately
+- mark vacations, launches, trips, deadlines, sprints, and milestones
+- keep input lightweight
+- make multi-day patterns easy to understand at a glance
 
-1. Clone or copy this folder into your vault under `.obsidian/plugins/annual-matrix/`.
-2. Run `npm install`.
-3. Run `npm run build` for a production bundle or `npm run dev` while developing.
-4. Enable **Annual Calendar** in Obsidian under **Settings -> Community plugins**.
+That is a good fit for many Obsidian users who plan in notes but want a yearly visual layer on top.
+
+## Installation
+
+### Manual Install
+
+1. Copy this repo into your vault under `.obsidian/plugins/annual-calendar/`
+2. Run `npm install`
+3. Run `npm run build`
+4. Enable `Annual Calendar` in `Settings -> Community plugins`
+
+### Development
+
+1. Clone the repository
+2. Run `npm install`
+3. Run `npm run dev` for watch mode or `npm run build` for a production bundle
+4. Reload the plugin inside Obsidian after changes
 
 ## Usage
 
-- Run the command `Open Annual Calendar` from the command palette.
-- Or click the ribbon icon to open the view.
-- Use the toolbar to move between years or jump back to the current year.
-- Click any valid date cell to open the corresponding daily note.
-- Missing notes are created automatically by default in `Daily Notes/YYYY-MM-DD.md`.
-- Drag across cells to select a range and create an annual block.
-- Or use `Shift`-click to start and finish a range selection.
-- Use the annual block list to review the current year's blocks or delete them.
-
-## Calendar Layout
-
-- Y axis: January to December
-- X axis: day `1` to `31`
-- Every cell represents one potential date
-- Invalid dates such as `2026-02-30` stay visible but cannot be clicked
+- Open the command palette and run `Open Annual Calendar`
+- Or use the ribbon icon to open the view
+- Navigate between years with `Previous`, `Today`, `Next`, or direct year input
+- Drag across dates to create a block
+- `Shift`-click to create a block range without dragging
+- Select a single day and use the stamp action to add an emoji marker
+- Open the details panel to review or delete saved blocks and stamps
 
 ## Settings
 
-- `Daily Notes Folder`: default `Daily Notes`
-- `Date Format`: default `YYYY-MM-DD`
-- `Month Language`: German or English
-- `Highlight weekends`: default `true`
-- `Highlight today`: default `true`
-- `Show past visualization`: default `true`
-- `Mark existing daily notes`: default `true`
-- `Create daily note on click`: default `true`
-- `Annual Calendar Folder`: default `Annual Calendar`
+- `View mode`
+  Switch between `Date Grid` and `Fixed week`
+- `Highlight weekends`
+  Slightly tints weekends for easier scanning
+- `Highlight today`
+  Marks the current day in red
+- `Show past visualization`
+  Makes past days darker and grayer
+- `Annual Calendar Folder`
+  Reserved for future data/export workflows
 
-## Architecture
+## Data Storage
 
-- `src/main.ts`: plugin lifecycle, command registration, ribbon icon, view registration, persisted data
-- `src/AnnualMatrixView.ts`: toolbar and 12x31 annual calendar rendering
-- `src/settings.ts`: settings tab and defaults
-- `src/dateUtils.ts`: leap year and date utility functions
-- `src/fileUtils.ts`: daily note path handling, folder creation, file open/create logic
-- `src/types.ts`: settings, plugin data, and annual block types
+The plugin currently stores its data in the plugin data file:
 
-Future annual blocks can be stored in plugin data via `annualBlocks` and rendered in the custom view without changing the core date grid model.
+- blocks
+- stamps
+- saved category color presets
+- display settings
 
-## Known Limitations
+It does not require Daily Notes, Periodic Notes, or external calendar integrations.
 
-- No fiscal year mode yet
-- No fixed week layout yet
-- No print or export workflow yet
-- Mobile layout is not optimized beyond basic responsiveness
-- No integration with Obsidian Daily Notes core plugin yet
-- No integration with Periodic Notes yet
-- No import or export workflow yet
+## Known Gaps Before Broader Expansion
 
-## Roadmap
+These are not blockers for an initial release, but they are the most obvious follow-up areas:
 
-- Fiscal year mode
-- Fixed week layout
-- Print/export
-- Mobile optimization
-- Optional integration with Obsidian Daily Notes core plugin
-- Optional integration with Periodic Notes
-- Optional import/export
+- import from external calendars or ICS
+- export or print workflows
+- richer block editing after creation
+- better mobile ergonomics
+- optional integrations with other Obsidian calendar workflows
+
+## Community Plugin Readiness
+
+The plugin is in a publishable state for an initial community release if the goal is:
+
+- annual planning
+- visual time ranges
+- milestone marking
+- lightweight year overview
+
+The core interaction model is already aligned with how many Obsidian users work: notes first, visual overview second.
+
+## Repository
+
+- GitHub: `https://github.com/ManuelMiethke/Annual-Calendar-Obsidian-Extension`
+
+## License
+
+MIT

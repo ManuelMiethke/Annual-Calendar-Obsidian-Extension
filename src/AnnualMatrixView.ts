@@ -18,7 +18,7 @@ import {
 import type AnnualMatrixPlugin from "./main";
 import type { AnnualBlock, AnnualStamp } from "./types";
 
-export const ANNUAL_MATRIX_VIEW_TYPE = "annual-matrix-view";
+export const ANNUAL_CALENDAR_VIEW_TYPE = "annual-calendar-view";
 
 export class AnnualMatrixView extends ItemView {
   plugin: AnnualMatrixPlugin;
@@ -38,7 +38,7 @@ export class AnnualMatrixView extends ItemView {
   }
 
   getViewType(): string {
-    return ANNUAL_MATRIX_VIEW_TYPE;
+    return ANNUAL_CALENDAR_VIEW_TYPE;
   }
 
   getDisplayText(): string {

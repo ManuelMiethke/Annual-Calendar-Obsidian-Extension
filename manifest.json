@@ -1,10 +1,10 @@
 {
-  "id": "annual-matrix",
+  "id": "annual-calendar",
   "name": "Annual Calendar",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "minAppVersion": "1.5.0",
-  "description": "A visual annual calendar for Obsidian with a full year shown in a single view.",
-  "author": "Codex",
-  "authorUrl": "https://openai.com",
+  "description": "A year-at-a-glance calendar for Obsidian with date blocks, stamps, and date grid or fixed-week layouts.",
+  "author": "Manuel Miethke",
+  "authorUrl": "https://github.com/ManuelMiethke",
   "isDesktopOnly": false
 }
