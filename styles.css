@@ -298,6 +298,20 @@
     inset 0 0 0 999px color-mix(in srgb, var(--annual-block-color, var(--color-blue)) 26%, transparent);
 }
 
+.annual-matrix-day-cell.has-block-start {
+  border-top-left-radius: 999px;
+  border-bottom-left-radius: 999px;
+}
+
+.annual-matrix-day-cell.has-block-middle {
+  border-radius: 0;
+}
+
+.annual-matrix-day-cell.has-block-end {
+  border-top-right-radius: 999px;
+  border-bottom-right-radius: 999px;
+}
+
 .annual-matrix-day-cell.is-today {
   color: var(--text-on-accent);
   background: var(--interactive-accent);
@@ -346,18 +360,19 @@
   display: grid;
   flex: 1;
   min-height: 0;
+  height: 100%;
   gap: 0.75rem;
   grid-template-rows: repeat(12, minmax(0, 1fr));
 }
 
 .annual-matrix-fixed-month {
-  padding: 0.9rem;
-  border: 1px solid var(--background-modifier-border);
-  border-radius: 12px;
-  background: var(--background-primary);
   min-height: 0;
   display: flex;
   flex-direction: column;
+  padding: 0.75rem 0.8rem;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--background-primary) 96%, var(--background-secondary) 4%);
 }
 
 .annual-matrix-fixed-month-header {
@@ -377,8 +392,9 @@
   display: grid;
   grid-template-rows: var(--annual-fixed-week-rows);
   min-height: 0;
+  flex: 1;
   grid-template-columns: var(--annual-fixed-week-columns);
-  grid-template-rows: auto repeat(6, minmax(0, 1fr));
+  grid-template-rows: var(--annual-fixed-week-rows);
   gap: 0;
   overflow: hidden;
   border: 1px solid var(--background-modifier-border);
@@ -396,6 +412,11 @@
   background: color-mix(in srgb, var(--background-secondary) 88%, var(--background-primary) 12%);
   color: var(--text-muted);
   font-size: 0.78rem;
+}
+
+.annual-matrix-fixed-weekday-header {
+  font-size: 0.76rem;
+  font-weight: 600;
 }
 
 .annual-matrix-fixed-week-empty-cell {

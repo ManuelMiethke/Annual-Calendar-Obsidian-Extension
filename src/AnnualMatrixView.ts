@@ -246,7 +246,7 @@ export class AnnualMatrixView extends ItemView {
 
       const monthGrid = section.createDiv({ cls: "annual-matrix-fixed-month-grid" });
       monthGrid.style.setProperty("--annual-fixed-week-columns", "repeat(7, minmax(2.2rem, 1fr))");
-        monthGrid.style.setProperty("--annual-fixed-week-rows", "repeat(6, minmax(0, 1fr))");
+      monthGrid.style.setProperty("--annual-fixed-week-rows", "repeat(6, minmax(0, 1fr))");
 
       for (const weekdayName of weekdayNames) {
         monthGrid.createDiv({
@@ -302,6 +302,22 @@ export class AnnualMatrixView extends ItemView {
       const [firstBlock] = matchingBlocks;
       cell.addClass("has-block");
       cell.style.setProperty("--annual-block-color", firstBlock.color);
+
+      const previousDate = this.shiftIsoDate(isoDate, -1);
+      const nextDate = this.shiftIsoDate(isoDate, 1);
+      const isBlockStart = !this.plugin.getAnnualBlocksForDate(previousDate).some((block) => block.id === firstBlock.id);
+      const isBlockEnd = !this.plugin.getAnnualBlocksForDate(nextDate).some((block) => block.id === firstBlock.id);
+
+      if (isBlockStart) {
+        cell.addClass("has-block-start");
+      }
+      if (!isBlockStart && !isBlockEnd) {
+        cell.addClass("has-block-middle");
+      }
+      if (isBlockEnd) {
+        cell.addClass("has-block-end");
+      }
+
       if (matchingBlocks.length > 1) {
         cell.addClass("has-multiple-blocks");
       }
@@ -346,6 +362,12 @@ export class AnnualMatrixView extends ItemView {
     });
 
     return cell;
+  }
+
+  private shiftIsoDate(isoDate: string, offsetDays: number): string {
+    const [year, month, day] = isoDate.split("-").map((part) => Number.parseInt(part, 10));
+    const shifted = new Date(year, month - 1, day + offsetDays);
+    return formatDateYYYYMMDD(shifted.getFullYear(), shifted.getMonth(), shifted.getDate());
   }
 
   private renderAnnualBlockPanel(container: HTMLElement): void {
