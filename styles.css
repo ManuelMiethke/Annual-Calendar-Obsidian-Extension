@@ -320,9 +320,9 @@
 }
 
 .annual-matrix-day-cell.is-past {
-  color: color-mix(in srgb, var(--text-normal) 56%, var(--text-muted) 44%);
+  color: color-mix(in srgb, var(--text-normal) 24%, var(--text-muted) 76%);
   background:
-    linear-gradient(180deg, color-mix(in srgb, var(--background-secondary) 78%, #424852 22%), color-mix(in srgb, var(--background-primary) 96%, #2c3138 4%));
+    linear-gradient(180deg, color-mix(in srgb, var(--background-secondary) 95%, #565b64 5%), color-mix(in srgb, var(--background-primary) 99%, #42464e 1%));
 }
 
 .annual-matrix-day-cell.is-weekend {
@@ -331,9 +331,9 @@
 }
 
 .annual-matrix-day-cell.is-weekend.is-past {
-  color: color-mix(in srgb, var(--text-normal) 52%, var(--text-muted) 48%);
+  color: color-mix(in srgb, var(--text-normal) 22%, var(--text-muted) 78%);
   background:
-    linear-gradient(180deg, color-mix(in srgb, var(--background-secondary) 80%, #3a4b40 20%), color-mix(in srgb, var(--background-primary) 96%, #263129 4%));
+    linear-gradient(180deg, color-mix(in srgb, var(--background-secondary) 95%, #4d5750 5%), color-mix(in srgb, var(--background-primary) 99%, #3b423d 1%));
 }
 
 .annual-matrix-day-cell.has-block {
@@ -348,17 +348,17 @@
 .annual-matrix-day-cell.is-today {
   color: var(--text-normal);
   background:
-    linear-gradient(180deg, color-mix(in srgb, var(--interactive-accent) 26%, var(--background-primary) 74%), color-mix(in srgb, var(--background-primary) 92%, black 8%));
+    linear-gradient(180deg, color-mix(in srgb, #ef4444 24%, var(--background-primary) 76%), color-mix(in srgb, var(--background-primary) 90%, #2f1111 10%));
   box-shadow:
-    inset 0 0 0 2px color-mix(in srgb, var(--interactive-accent) 74%, white 26%),
-    inset 0 0 26px color-mix(in srgb, var(--interactive-accent) 18%, transparent);
+    inset 0 0 0 2px color-mix(in srgb, #ef4444 76%, white 24%),
+    inset 0 0 26px color-mix(in srgb, #ef4444 18%, transparent);
   font-weight: 700;
 }
 
 .annual-matrix-day-cell.is-today:hover,
 .annual-matrix-day-cell.is-today:focus-visible {
   background:
-    linear-gradient(180deg, color-mix(in srgb, var(--interactive-accent) 34%, var(--background-primary) 66%), color-mix(in srgb, var(--background-primary) 90%, black 10%));
+    linear-gradient(180deg, color-mix(in srgb, #ef4444 32%, var(--background-primary) 68%), color-mix(in srgb, var(--background-primary) 88%, #3b1212 12%));
 }
 
 .annual-matrix-day-cell.is-selected {

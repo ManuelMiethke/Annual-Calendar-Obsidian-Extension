@@ -1,7 +1,7 @@
 {
   "settings": {
     "monthLanguage": "de",
-    "viewMode": "matrix",
+    "viewMode": "fixed-week",
     "highlightWeekends": true,
     "highlightToday": true,
     "showPastVisualization": true,
@@ -79,6 +79,38 @@
       "color": "#4a8f6f",
       "startDate": "2026-08-17",
       "endDate": "2026-08-25"
+    },
+    {
+      "id": "block-1781180181744-vfuya7",
+      "title": "Hard",
+      "category": "general",
+      "color": "#c9ded4",
+      "startDate": "2026-03-01",
+      "endDate": "2026-05-01"
+    },
+    {
+      "id": "block-1781180460674-2dkm7x",
+      "title": "2026-06-13 -> 2026-06-20",
+      "category": "Heyho",
+      "color": "#4a8f6f",
+      "startDate": "2026-06-13",
+      "endDate": "2026-06-20"
+    },
+    {
+      "id": "block-1781180467617-jb4uvx",
+      "title": "2026-08-02 -> 2026-08-06",
+      "category": "heyho",
+      "color": "#4a8f6f",
+      "startDate": "2026-08-02",
+      "endDate": "2026-08-06"
+    },
+    {
+      "id": "block-1781180474793-jzaef8",
+      "title": "2026-09-13 -> 2026-09-20",
+      "category": "heyho",
+      "color": "#4a8f6f",
+      "startDate": "2026-09-13",
+      "endDate": "2026-09-20"
     }
   ],
   "annualStamps": [
@@ -105,6 +137,7 @@
     }
   ],
   "categoryPresets": {
-    "general": "#4a8f6f"
+    "general": "#c9ded4",
+    "heyho": "#4a8f6f"
   }
 }

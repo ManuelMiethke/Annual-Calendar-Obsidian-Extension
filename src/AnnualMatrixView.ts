@@ -137,8 +137,6 @@ export class AnnualMatrixView extends ItemView {
     });
 
     const actions = toolbar.createDiv({ cls: "annual-matrix-toolbar-group annual-matrix-toolbar-actions" });
-    const selection = this.getSelectionRange();
-
     const stampButton = actions.createEl("button", {
       cls: "annual-matrix-icon-button",
       attr: {
@@ -149,6 +147,7 @@ export class AnnualMatrixView extends ItemView {
     });
     setIcon(stampButton, "stamp");
     stampButton.addEventListener("click", () => {
+      const selection = this.getSelectionRange();
       if (!selection || selection.startDate !== selection.endDate) {
         new Notice("Shift-click a single day first to add a stamp.");
         return;
@@ -173,44 +172,6 @@ export class AnnualMatrixView extends ItemView {
       this.isAnnualBlockListOpen = !this.isAnnualBlockListOpen;
       this.render();
     });
-
-    if (selection) {
-      const selectionInfo = container.createDiv({ cls: "annual-matrix-selection-bar" });
-      selectionInfo.createSpan({
-        text:
-          selection.startDate === selection.endDate
-            ? `Selected: ${selection.startDate}`
-            : `Selected: ${selection.startDate} -> ${selection.endDate}`,
-      });
-
-      const createBlockButton = selectionInfo.createEl("button", {
-        cls: "mod-cta",
-        text: "Create Block",
-        attr: { type: "button" },
-      });
-      createBlockButton.addEventListener("click", () => {
-        void this.openAnnualBlockModal(selection.startDate, selection.endDate);
-      });
-
-      const clearSelectionButton = selectionInfo.createEl("button", {
-        text: "Clear Selection",
-        attr: { type: "button" },
-      });
-      clearSelectionButton.addEventListener("click", () => {
-        this.clearSelection();
-        this.render();
-      });
-
-      if (selection.startDate === selection.endDate) {
-        const createStampButton = selectionInfo.createEl("button", {
-          text: "Add Stamp",
-          attr: { type: "button" },
-        });
-        createStampButton.addEventListener("click", () => {
-          void this.openAnnualStampModal(selection.startDate);
-        });
-      }
-    }
   }
 
   private renderGrid(container: HTMLElement): void {
@@ -240,7 +201,7 @@ export class AnnualMatrixView extends ItemView {
             cls: "annual-matrix-day-cell is-invalid",
             attr: { "aria-disabled": "true" },
           });
-          invalidCell.setAttribute("title", "Invalid date");
+          invalidCell.setAttribute("aria-label", "Invalid date");
           continue;
         }
 
@@ -298,7 +259,6 @@ export class AnnualMatrixView extends ItemView {
       cls: "annual-matrix-day-cell",
       attr: {
         type: "button",
-        title: isoDate,
       },
     });
 
@@ -414,7 +374,6 @@ export class AnnualMatrixView extends ItemView {
         `Stamps: ${matchingStamps.map((stamp) => stamp.label || stamp.emoji).join(", ")}`,
       );
     }
-    cell.setAttribute("title", titleParts.join(" • "));
     cell.setAttribute("aria-label", titleParts.join(". "));
 
     if (this.isDateSelected(isoDate)) {
