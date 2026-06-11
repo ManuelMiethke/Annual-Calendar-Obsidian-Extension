@@ -7,6 +7,14 @@ export interface AnnualBlock {
   category: string;
 }
 
+export interface AnnualStamp {
+  id: string;
+  date: string;
+  emoji: string;
+  label: string;
+  color: string;
+}
+
 export type AnnualMatrixViewMode = "matrix" | "fixed-week";
 
 export interface AnnualMatrixSettings {
@@ -25,4 +33,5 @@ export interface AnnualMatrixSettings {
 export interface AnnualMatrixPluginData {
   settings: AnnualMatrixSettings;
   annualBlocks: AnnualBlock[];
+  annualStamps: AnnualStamp[];
 }

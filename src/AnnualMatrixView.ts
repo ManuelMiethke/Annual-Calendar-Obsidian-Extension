@@ -39,7 +39,7 @@ export class AnnualMatrixView extends ItemView {
   }
 
   getDisplayText(): string {
-    return "Date Grid";
+    return "Annual Calendar";
   }
 
   getIcon(): string {
@@ -77,7 +77,7 @@ export class AnnualMatrixView extends ItemView {
     const titleGroup = toolbar.createDiv({ cls: "annual-matrix-toolbar-group" });
     titleGroup.createEl("h2", {
       cls: "annual-matrix-title",
-      text: `Date Grid ${this.displayYear}`,
+      text: String(this.displayYear),
     });
 
     const controls = toolbar.createDiv({ cls: "annual-matrix-toolbar-group annual-matrix-toolbar-controls" });
@@ -193,7 +193,6 @@ export class AnnualMatrixView extends ItemView {
   private renderMatrixGrid(container: HTMLElement): void {
     const gridWrapper = container.createDiv({ cls: "annual-matrix-grid-wrapper" });
     const grid = gridWrapper.createDiv({ cls: "annual-matrix-grid" });
-    grid.style.setProperty("--annual-matrix-columns", "5rem repeat(31, minmax(2.8rem, 1fr))");
 
     const corner = grid.createDiv({ cls: "annual-matrix-header-cell annual-matrix-corner-cell" });
     setIcon(corner, "calendar-range");
@@ -231,7 +230,6 @@ export class AnnualMatrixView extends ItemView {
   private renderFixedWeekGrid(container: HTMLElement): void {
     const gridWrapper = container.createDiv({ cls: "annual-matrix-grid-wrapper" });
     const grid = gridWrapper.createDiv({ cls: "annual-matrix-fixed-week-grid" });
-    grid.style.setProperty("--annual-matrix-columns", "5rem repeat(31, minmax(2.8rem, 1fr))");
 
     const monthNames = getMonthNames();
     const weekdayNames = getWeekdayNames();

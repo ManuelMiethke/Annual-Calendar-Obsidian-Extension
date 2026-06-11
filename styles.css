@@ -1,4 +1,8 @@
 .annual-matrix-view {
+  --annual-matrix-label-width: clamp(3.2rem, 8vw, 4.6rem);
+  --annual-matrix-row-height: clamp(2rem, 4vh, 2.9rem);
+  --annual-matrix-header-font-size: clamp(0.62rem, 0.85vw, 0.78rem);
+  --annual-matrix-cell-font-size: clamp(0.66rem, 0.95vw, 0.86rem);
   height: 100%;
   min-height: 0;
   display: flex;
@@ -181,7 +185,7 @@
   flex: 1;
   min-height: 0;
   display: flex;
-  overflow: auto;
+  overflow: hidden;
   padding-bottom: 0.5rem;
 }
 
@@ -189,9 +193,9 @@
   display: grid;
   width: 100%;
   min-height: 100%;
-  grid-auto-rows: minmax(2.9rem, 1fr);
-  grid-template-columns: var(--annual-matrix-columns);
-  min-width: max-content;
+  min-width: 0;
+  grid-auto-rows: minmax(var(--annual-matrix-row-height), 1fr);
+  grid-template-columns: var(--annual-matrix-label-width) repeat(31, minmax(0, 1fr));
   border: 1px solid var(--background-modifier-border);
   border-radius: 14px;
   overflow: hidden;
@@ -201,7 +205,8 @@
 .annual-matrix-header-cell,
 .annual-matrix-month-label,
 .annual-matrix-day-cell {
-  min-height: 2.9rem;
+  min-width: 0;
+  min-height: var(--annual-matrix-row-height);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -213,7 +218,7 @@
   position: sticky;
   top: 0;
   z-index: 3;
-  font-size: 0.78rem;
+  font-size: var(--annual-matrix-header-font-size);
   font-weight: 600;
   background: color-mix(in srgb, var(--background-secondary) 88%, var(--background-primary) 12%);
 }
@@ -229,22 +234,20 @@
   left: 0;
   z-index: 2;
   justify-content: flex-start;
-  padding: 0 0.7rem;
-  font-size: 0.82rem;
+  padding: 0 0.5rem;
+  font-size: clamp(0.68rem, 0.95vw, 0.82rem);
   font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
   background: color-mix(in srgb, var(--background-secondary) 92%, var(--background-primary) 8%);
-}
-
-.annual-matrix-day-header {
-  min-width: 2.8rem;
 }
 
 .annual-matrix-day-cell {
   position: relative;
-  min-width: 2.8rem;
   padding: 0;
   font: inherit;
-  font-size: 0.86rem;
+  font-size: var(--annual-matrix-cell-font-size);
+  font-variant-numeric: tabular-nums;
   color: var(--text-muted);
   background: color-mix(in srgb, var(--background-primary) 96%, var(--background-secondary) 4%);
   cursor: pointer;
@@ -360,9 +363,9 @@
   display: grid;
   width: 100%;
   min-height: 100%;
-  grid-auto-rows: minmax(2.9rem, 1fr);
-  grid-template-columns: var(--annual-matrix-columns);
-  min-width: max-content;
+  min-width: 0;
+  grid-auto-rows: minmax(var(--annual-matrix-row-height), 1fr);
+  grid-template-columns: var(--annual-matrix-label-width) repeat(31, minmax(0, 1fr));
   border: 1px solid var(--background-modifier-border);
   border-radius: 14px;
   overflow: hidden;

@@ -97,3 +97,8 @@ const WEEKDAY_NAMES = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"] as const;
 export function getWeekdayNames(): readonly string[] {
   return WEEKDAY_NAMES;
 }
+
+export function getWeekdayNameForDate(year: number, monthIndex: number, day: number): string {
+  const weekdayIndex = (new Date(year, monthIndex, day).getDay() + 6) % 7;
+  return WEEKDAY_NAMES[weekdayIndex];
+}

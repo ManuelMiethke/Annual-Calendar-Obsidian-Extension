@@ -28,7 +28,7 @@ export class AnnualMatrixSettingTab extends PluginSettingTab {
     const { containerEl } = this;
     containerEl.empty();
 
-    containerEl.createEl("h2", { text: "Annual Matrix" });
+    containerEl.createEl("h2", { text: "Annual Calendar" });
 
     this.addTextSetting(
       "Daily Notes Folder",
@@ -52,10 +52,10 @@ export class AnnualMatrixSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName("View mode")
-      .setDesc("Choose between the Date Grid and a fixed-week layout.")
+      .setDesc("Choose between the annual calendar grid and a fixed-week layout.")
       .addDropdown((dropdown) =>
         dropdown
-          .addOption("matrix", "Date Grid")
+          .addOption("matrix", "Annual calendar")
           .addOption("fixed-week", "Fixed week")
           .setValue(this.plugin.settings.viewMode)
           .onChange(async (value) => {
@@ -66,7 +66,7 @@ export class AnnualMatrixSettingTab extends PluginSettingTab {
 
     this.addToggleSetting(
       "Highlight weekends",
-      "Mark Saturdays and Sundays in the annual matrix.",
+      "Mark Saturdays and Sundays in the annual calendar.",
       this.plugin.settings.highlightWeekends,
       async (value) => {
         this.plugin.settings.highlightWeekends = value;

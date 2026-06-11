@@ -1,14 +1,14 @@
-# Annual Matrix
+# Annual Calendar
 
-A visual 12x31 annual calendar for Obsidian, inspired by year-at-a-glance planning tools.
+A visual annual calendar for Obsidian, inspired by year-at-a-glance planning tools.
 
-This plugin uses a 12x31 annual matrix: months as rows, days as columns.
+This plugin uses a 12x31 annual calendar grid: months as rows, days as columns.
 
 Screenshot placeholder: add a view capture after the first local build in Obsidian.
 
 ## Features
 
-- Custom Obsidian view for a full-year 12x31 matrix
+- Custom Obsidian view for a full-year 12x31 annual calendar
 - Months on the left, days `1-31` across the top
 - Invalid dates stay visible but disabled
 - Click a valid date to open or create its daily note
@@ -17,7 +17,7 @@ Screenshot placeholder: add a view capture after the first local build in Obsidi
 - Year navigation with previous, next, today, and direct year input
 - Drag across dates or use `Shift`-click to select a range
 - Create simple annual blocks with title, category, and color
-- Persisted multi-day blocks are rendered directly in the matrix
+- Persisted multi-day blocks are rendered directly in the calendar
 - Annual blocks can be reviewed and deleted in a yearly block list
 - Settings for folder paths, month language, and display toggles
 - MVP data model prepared for future annual blocks
@@ -27,11 +27,11 @@ Screenshot placeholder: add a view capture after the first local build in Obsidi
 1. Clone or copy this folder into your vault under `.obsidian/plugins/annual-matrix/`.
 2. Run `npm install`.
 3. Run `npm run build` for a production bundle or `npm run dev` while developing.
-4. Enable **Annual Matrix** in Obsidian under **Settings -> Community plugins**.
+4. Enable **Annual Calendar** in Obsidian under **Settings -> Community plugins**.
 
 ## Usage
 
-- Run the command `Open Annual Matrix` from the command palette.
+- Run the command `Open Annual Calendar` from the command palette.
 - Or click the ribbon icon to open the view.
 - Use the toolbar to move between years or jump back to the current year.
 - Click any valid date cell to open the corresponding daily note.
@@ -40,7 +40,7 @@ Screenshot placeholder: add a view capture after the first local build in Obsidi
 - Or use `Shift`-click to start and finish a range selection.
 - Use the annual block list to review the current year's blocks or delete them.
 
-## Matrix Layout
+## Calendar Layout
 
 - Y axis: January to December
 - X axis: day `1` to `31`
@@ -62,7 +62,7 @@ Screenshot placeholder: add a view capture after the first local build in Obsidi
 ## Architecture
 
 - `src/main.ts`: plugin lifecycle, command registration, ribbon icon, view registration, persisted data
-- `src/AnnualMatrixView.ts`: toolbar and 12x31 matrix rendering
+- `src/AnnualMatrixView.ts`: toolbar and 12x31 annual calendar rendering
 - `src/settings.ts`: settings tab and defaults
 - `src/dateUtils.ts`: leap year and date utility functions
 - `src/fileUtils.ts`: daily note path handling, folder creation, file open/create logic

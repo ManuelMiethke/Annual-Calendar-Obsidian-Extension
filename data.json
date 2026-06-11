@@ -27,6 +27,14 @@
       "color": "#83fbc3",
       "startDate": "2026-07-14",
       "endDate": "2026-07-27"
+    },
+    {
+      "title": "Annual",
+      "category": "friends",
+      "color": "#914b4b",
+      "startDate": "2026-10-12",
+      "endDate": "2026-10-15",
+      "id": "block-1781173252791-1235bt"
     }
   ]
 }

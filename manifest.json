@@ -1,9 +1,9 @@
 {
   "id": "annual-matrix",
-  "name": "Annual Matrix",
+  "name": "Annual Calendar",
   "version": "0.1.0",
   "minAppVersion": "1.5.0",
-  "description": "A visual 12x31 annual calendar for Obsidian, inspired by year-at-a-glance planning tools.",
+  "description": "A visual annual calendar for Obsidian with a full year shown in a single view.",
   "author": "Codex",
   "authorUrl": "https://openai.com",
   "isDesktopOnly": false

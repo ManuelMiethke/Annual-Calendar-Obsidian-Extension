@@ -3,11 +3,12 @@ import { Plugin, WorkspaceLeaf } from "obsidian";
 import { ANNUAL_MATRIX_VIEW_TYPE, AnnualMatrixView } from "./AnnualMatrixView";
 import { isDateWithinRange, normalizeDateRange } from "./dateUtils";
 import { AnnualMatrixSettingTab, DEFAULT_SETTINGS } from "./settings";
-import type { AnnualBlock, AnnualMatrixPluginData, AnnualMatrixSettings } from "./types";
+import type { AnnualBlock, AnnualMatrixPluginData, AnnualMatrixSettings, AnnualStamp } from "./types";
 
 export default class AnnualMatrixPlugin extends Plugin {
   settings: AnnualMatrixSettings = DEFAULT_SETTINGS;
   annualBlocks: AnnualBlock[] = [];
+  annualStamps: AnnualStamp[] = [];
 
   async onload(): Promise<void> {
     await this.loadPluginData();
@@ -19,13 +20,13 @@ export default class AnnualMatrixPlugin extends Plugin {
 
     this.addCommand({
       id: "open-annual-matrix",
-      name: "Open Annual Matrix",
+      name: "Open Annual Calendar",
       callback: async () => {
         await this.activateView();
       },
     });
 
-    this.addRibbonIcon("calendar-range", "Open Annual Matrix", async () => {
+    this.addRibbonIcon("calendar-range", "Open Annual Calendar", async () => {
       await this.activateView();
     });
 
@@ -66,23 +67,27 @@ export default class AnnualMatrixPlugin extends Plugin {
     if (!loaded) {
       this.settings = { ...DEFAULT_SETTINGS };
       this.annualBlocks = [];
+      this.annualStamps = [];
       return;
     }
 
     if ("settings" in loaded) {
       this.settings = { ...DEFAULT_SETTINGS, ...loaded.settings };
       this.annualBlocks = this.normalizeAnnualBlocks(loaded.annualBlocks);
+      this.annualStamps = this.normalizeAnnualStamps(loaded.annualStamps);
       return;
     }
 
     this.settings = { ...DEFAULT_SETTINGS, ...loaded };
     this.annualBlocks = [];
+    this.annualStamps = [];
   }
 
   async savePluginData(): Promise<void> {
     const payload: AnnualMatrixPluginData = {
       settings: this.settings,
       annualBlocks: this.annualBlocks,
+      annualStamps: this.annualStamps,
     };
     await this.saveData(payload);
     await this.refreshAllViews();
@@ -100,6 +105,15 @@ export default class AnnualMatrixPlugin extends Plugin {
     return this.annualBlocks.filter((block) => isDateWithinRange(date, block.startDate, block.endDate));
   }
 
+  getAnnualStampsForYear(year: number): AnnualStamp[] {
+    const yearPrefix = `${year}-`;
+    return this.annualStamps.filter((stamp) => stamp.date.startsWith(yearPrefix));
+  }
+
+  getAnnualStampsForDate(date: string): AnnualStamp[] {
+    return this.annualStamps.filter((stamp) => stamp.date === date);
+  }
+
   async addAnnualBlock(block: Omit<AnnualBlock, "id">): Promise<AnnualBlock> {
     const normalized = normalizeDateRange(block.startDate, block.endDate);
     const nextBlock: AnnualBlock = {
@@ -114,6 +128,21 @@ export default class AnnualMatrixPlugin extends Plugin {
 
   async removeAnnualBlock(blockId: string): Promise<void> {
     this.annualBlocks = this.annualBlocks.filter((block) => block.id !== blockId);
+    await this.savePluginData();
+  }
+
+  async addAnnualStamp(stamp: Omit<AnnualStamp, "id">): Promise<AnnualStamp> {
+    const nextStamp: AnnualStamp = {
+      ...stamp,
+      id: `stamp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    };
+    this.annualStamps = [...this.annualStamps, nextStamp];
+    await this.savePluginData();
+    return nextStamp;
+  }
+
+  async removeAnnualStamp(stampId: string): Promise<void> {
+    this.annualStamps = this.annualStamps.filter((stamp) => stamp.id !== stampId);
     await this.savePluginData();
   }
 
@@ -149,6 +178,28 @@ export default class AnnualMatrixPlugin extends Plugin {
           color: typeof block.color === "string" && block.color.trim().length > 0 ? block.color : "#4a8f6f",
           startDate: normalized.startDate,
           endDate: normalized.endDate,
+        };
+      });
+  }
+
+  private normalizeAnnualStamps(stamps: unknown): AnnualStamp[] {
+    if (!Array.isArray(stamps)) {
+      return [];
+    }
+
+    return stamps
+      .filter((stamp): stamp is Partial<AnnualStamp> & Pick<AnnualStamp, "date"> => {
+        return typeof stamp === "object" && stamp !== null
+          && typeof stamp.date === "string"
+          && stamp.date.length > 0;
+      })
+      .map((stamp, index) => {
+        return {
+          id: typeof stamp.id === "string" && stamp.id.length > 0 ? stamp.id : `legacy-stamp-${index}`,
+          date: stamp.date,
+          emoji: typeof stamp.emoji === "string" && stamp.emoji.trim().length > 0 ? stamp.emoji.trim() : "✨",
+          label: typeof stamp.label === "string" ? stamp.label.trim() : "",
+          color: typeof stamp.color === "string" && stamp.color.trim().length > 0 ? stamp.color : "#f59e0b",
         };
       });
   }
