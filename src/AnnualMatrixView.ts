@@ -1,0 +1,387 @@
+import { ItemView, Notice, WorkspaceLeaf, setIcon } from "obsidian";
+
+import { AnnualBlockModal } from "./AnnualBlockModal";
+import {
+  formatDateYYYYMMDD,
+  getMonthNames,
+  isDateWithinRange,
+  isPast,
+  isToday,
+  isValidDate,
+  isWeekend,
+  normalizeDateRange,
+} from "./dateUtils";
+import { dailyNoteExists, openOrCreateDailyNote } from "./fileUtils";
+import type AnnualMatrixPlugin from "./main";
+
+export const ANNUAL_MATRIX_VIEW_TYPE = "annual-matrix-view";
+
+export class AnnualMatrixView extends ItemView {
+  plugin: AnnualMatrixPlugin;
+  displayYear: number;
+  private selectionAnchor: string | null = null;
+  private selectionFocus: string | null = null;
+  private isSelecting = false;
+  private didDragDuringSelection = false;
+  private suppressNextClick = false;
+
+  constructor(leaf: WorkspaceLeaf, plugin: AnnualMatrixPlugin) {
+    super(leaf);
+    this.plugin = plugin;
+    this.displayYear = new Date().getFullYear();
+  }
+
+  getViewType(): string {
+    return ANNUAL_MATRIX_VIEW_TYPE;
+  }
+
+  getDisplayText(): string {
+    return "Annual Matrix";
+  }
+
+  getIcon(): string {
+    return "calendar-days";
+  }
+
+  async onOpen(): Promise<void> {
+    this.registerDomEvent(document, "mouseup", () => {
+      void this.handleGlobalMouseUp();
+    });
+    this.render();
+  }
+
+  async onClose(): Promise<void> {
+    this.contentEl.empty();
+  }
+
+  async refresh(): Promise<void> {
+    this.render();
+  }
+
+  private render(): void {
+    const { contentEl } = this;
+    contentEl.empty();
+    contentEl.addClass("annual-matrix-view");
+
+    this.renderToolbar(contentEl);
+    this.renderGrid(contentEl);
+  }
+
+  private renderToolbar(container: HTMLElement): void {
+    const toolbar = container.createDiv({ cls: "annual-matrix-toolbar" });
+
+    const titleGroup = toolbar.createDiv({ cls: "annual-matrix-toolbar-group" });
+    titleGroup.createEl("h2", {
+      cls: "annual-matrix-title",
+      text: `Annual Matrix ${this.displayYear}`,
+    });
+
+    const controls = toolbar.createDiv({ cls: "annual-matrix-toolbar-group annual-matrix-toolbar-controls" });
+
+    const prevButton = controls.createEl("button", {
+      cls: "mod-cta",
+      text: "Previous",
+      attr: { type: "button", "aria-label": "Show previous year" },
+    });
+    prevButton.addEventListener("click", () => {
+      this.displayYear -= 1;
+      this.render();
+    });
+
+    const yearInput = controls.createEl("input", {
+      cls: "annual-matrix-year-input",
+      attr: {
+        type: "number",
+        min: "1",
+        max: "9999",
+        value: String(this.displayYear),
+        "aria-label": "Displayed year",
+      },
+    });
+    yearInput.addEventListener("change", () => {
+      const parsed = Number.parseInt(yearInput.value, 10);
+      if (Number.isNaN(parsed) || parsed < 1 || parsed > 9999) {
+        yearInput.value = String(this.displayYear);
+        new Notice("Please enter a valid year.");
+        return;
+      }
+      this.displayYear = parsed;
+      this.render();
+    });
+
+    const todayButton = controls.createEl("button", {
+      text: "Today",
+      attr: { type: "button", "aria-label": "Jump to the current year" },
+    });
+    todayButton.addEventListener("click", () => {
+      this.displayYear = new Date().getFullYear();
+      this.render();
+    });
+
+    const nextButton = controls.createEl("button", {
+      cls: "mod-cta",
+      text: "Next",
+      attr: { type: "button", "aria-label": "Show next year" },
+    });
+    nextButton.addEventListener("click", () => {
+      this.displayYear += 1;
+      this.render();
+    });
+
+    const selection = this.getSelectionRange();
+    if (selection) {
+      const selectionInfo = container.createDiv({ cls: "annual-matrix-selection-bar" });
+      selectionInfo.createSpan({
+        text:
+          selection.startDate === selection.endDate
+            ? `Selected: ${selection.startDate}`
+            : `Selected: ${selection.startDate} -> ${selection.endDate}`,
+      });
+
+      const createBlockButton = selectionInfo.createEl("button", {
+        cls: "mod-cta",
+        text: "Create Block",
+        attr: { type: "button" },
+      });
+      createBlockButton.addEventListener("click", () => {
+        void this.openAnnualBlockModal(selection.startDate, selection.endDate);
+      });
+
+      const clearSelectionButton = selectionInfo.createEl("button", {
+        text: "Clear Selection",
+        attr: { type: "button" },
+      });
+      clearSelectionButton.addEventListener("click", () => {
+        this.clearSelection();
+        this.render();
+      });
+    }
+  }
+
+  private renderGrid(container: HTMLElement): void {
+    const gridWrapper = container.createDiv({ cls: "annual-matrix-grid-wrapper" });
+    const grid = gridWrapper.createDiv({ cls: "annual-matrix-grid" });
+    grid.style.setProperty("--annual-matrix-columns", "8rem repeat(31, minmax(2.2rem, 1fr))");
+
+    const corner = grid.createDiv({ cls: "annual-matrix-header-cell annual-matrix-corner-cell" });
+    setIcon(corner, "calendar-range");
+
+    for (let day = 1; day <= 31; day += 1) {
+      grid.createDiv({
+        cls: "annual-matrix-header-cell annual-matrix-day-header",
+        text: String(day),
+      });
+    }
+
+    const monthNames = getMonthNames(this.plugin.settings.monthLanguage);
+
+    for (let monthIndex = 0; monthIndex < 12; monthIndex += 1) {
+      grid.createDiv({
+        cls: "annual-matrix-month-label",
+        text: monthNames[monthIndex],
+      });
+
+      for (let day = 1; day <= 31; day += 1) {
+        const valid = isValidDate(this.displayYear, monthIndex, day);
+        if (!valid) {
+          const invalidCell = grid.createDiv({
+            cls: "annual-matrix-day-cell is-invalid",
+            attr: { "aria-disabled": "true" },
+          });
+          invalidCell.setAttribute("title", "Invalid date");
+          continue;
+        }
+
+        const isoDate = formatDateYYYYMMDD(this.displayYear, monthIndex, day);
+        const cell = grid.createEl("button", {
+          cls: "annual-matrix-day-cell",
+          text: String(day),
+          attr: {
+            type: "button",
+            title: isoDate,
+          },
+        });
+
+        if (this.plugin.settings.markExistingDailyNotes && dailyNoteExists(this.app, this.displayYear, monthIndex, day, this.plugin.settings)) {
+          cell.addClass("has-note");
+        }
+
+        if (this.plugin.settings.highlightToday && isToday(this.displayYear, monthIndex, day)) {
+          cell.addClass("is-today");
+        }
+
+        if (this.plugin.settings.showPastVisualization && isPast(this.displayYear, monthIndex, day)) {
+          cell.addClass("is-past");
+        }
+
+        if (this.plugin.settings.highlightWeekends && isWeekend(this.displayYear, monthIndex, day)) {
+          cell.addClass("is-weekend");
+        }
+
+        const matchingBlocks = this.plugin.getAnnualBlocksForDate(isoDate);
+        if (matchingBlocks.length > 0) {
+          const [firstBlock] = matchingBlocks;
+          cell.addClass("has-block");
+          cell.style.setProperty("--annual-block-color", firstBlock.color);
+          if (matchingBlocks.length > 1) {
+            cell.addClass("has-multiple-blocks");
+          }
+
+          const blockSummary = matchingBlocks.map((block) => block.title).join(", ");
+          cell.setAttribute("title", `${isoDate} • ${blockSummary}`);
+          cell.setAttribute("aria-label", `${isoDate}. Blocks: ${blockSummary}`);
+        }
+
+        if (this.isDateSelected(isoDate)) {
+          cell.addClass("is-selected");
+          const range = this.getSelectionRange();
+          if (range?.startDate === isoDate) {
+            cell.addClass("is-selection-start");
+          }
+          if (range?.endDate === isoDate) {
+            cell.addClass("is-selection-end");
+          }
+        }
+
+        cell.addEventListener("mousedown", (event) => {
+          this.handleCellMouseDown(event, isoDate);
+        });
+
+        cell.addEventListener("mouseenter", () => {
+          this.handleCellMouseEnter(isoDate);
+        });
+
+        cell.addEventListener("click", async (event) => {
+          if (event.shiftKey) {
+            this.handleShiftClickSelection(isoDate);
+            return;
+          }
+
+          if (this.suppressNextClick) {
+            this.suppressNextClick = false;
+            return;
+          }
+
+          await openOrCreateDailyNote(this.app, this.displayYear, monthIndex, day, this.plugin.settings);
+          await this.refresh();
+        });
+      }
+    }
+  }
+
+  private handleCellMouseDown(event: MouseEvent, isoDate: string): void {
+    if (event.button !== 0 || event.shiftKey) {
+      return;
+    }
+
+    event.preventDefault();
+    this.selectionAnchor = isoDate;
+    this.selectionFocus = isoDate;
+    this.isSelecting = true;
+    this.didDragDuringSelection = false;
+  }
+
+  private handleCellMouseEnter(isoDate: string): void {
+    if (!this.isSelecting || !this.selectionAnchor) {
+      return;
+    }
+
+    if (this.selectionFocus !== isoDate) {
+      this.didDragDuringSelection = true;
+      this.selectionFocus = isoDate;
+      this.render();
+    }
+  }
+
+  private async handleGlobalMouseUp(): Promise<void> {
+    if (!this.isSelecting) {
+      return;
+    }
+
+    this.isSelecting = false;
+
+    if (!this.didDragDuringSelection) {
+      this.clearSelection();
+      return;
+    }
+
+    const selection = this.getSelectionRange();
+    if (!selection) {
+      this.clearSelection();
+      this.render();
+      return;
+    }
+
+    this.suppressNextClick = true;
+    await this.openAnnualBlockModal(selection.startDate, selection.endDate);
+  }
+
+  private handleShiftClickSelection(isoDate: string): void {
+    if (!this.selectionAnchor) {
+      this.selectionAnchor = isoDate;
+      this.selectionFocus = isoDate;
+      this.render();
+      return;
+    }
+
+    this.selectionFocus = isoDate;
+    const selection = this.getSelectionRange();
+    if (!selection) {
+      this.render();
+      return;
+    }
+
+    void this.openAnnualBlockModal(selection.startDate, selection.endDate);
+  }
+
+  private getSelectionRange(): { startDate: string; endDate: string } | null {
+    if (!this.selectionAnchor || !this.selectionFocus) {
+      return null;
+    }
+
+    return normalizeDateRange(this.selectionAnchor, this.selectionFocus);
+  }
+
+  private isDateSelected(isoDate: string): boolean {
+    const selection = this.getSelectionRange();
+    if (!selection) {
+      return false;
+    }
+
+    return isDateWithinRange(isoDate, selection.startDate, selection.endDate);
+  }
+
+  private clearSelection(): void {
+    this.selectionAnchor = null;
+    this.selectionFocus = null;
+    this.isSelecting = false;
+    this.didDragDuringSelection = false;
+    this.suppressNextClick = false;
+  }
+
+  private async openAnnualBlockModal(startDate: string, endDate: string): Promise<void> {
+    const normalized = normalizeDateRange(startDate, endDate);
+    const modal = new AnnualBlockModal(
+      this.app,
+      normalized.startDate,
+      normalized.endDate,
+      async (result) => {
+        await this.plugin.addAnnualBlock({
+          title: result.title,
+          category: result.category,
+          color: result.color,
+          startDate: normalized.startDate,
+          endDate: normalized.endDate,
+        });
+        this.clearSelection();
+        await this.refresh();
+      },
+      () => {
+        this.clearSelection();
+        void this.refresh();
+      },
+    );
+
+    modal.open();
+  }
+}
