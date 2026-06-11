@@ -359,10 +359,18 @@ export class AnnualMatrixView extends ItemView {
         const isVisibleSegmentEnd = isBlockEnd || day === getDaysInMonth(this.displayYear, monthIndex);
         const shouldShowBlockLabel = isVisibleSegmentStart;
         const blockBar = cell.createDiv({ cls: "annual-matrix-block-bar" });
+        const blockTextColors = this.getBlockTextColors(block.color);
+        const visibleSpanDays = isVisibleSegmentStart
+          ? this.getVisibleBlockSpanDays(block.id, monthIndex, day)
+          : 1;
         blockBar.style.setProperty("--annual-block-color", block.color);
+        blockBar.style.setProperty("--annual-block-text-color", blockTextColors.primary);
+        blockBar.style.setProperty("--annual-block-text-muted-color", blockTextColors.secondary);
         blockBar.style.setProperty("--annual-block-lane", String(lane));
+        blockBar.style.setProperty("--annual-block-span-days", String(visibleSpanDays));
         if (isVisibleSegmentStart) {
           blockBar.addClass("is-segment-start");
+          cell.addClass("has-block-label");
         }
         if (!isVisibleSegmentStart && !isVisibleSegmentEnd) {
           blockBar.addClass("is-segment-middle");
@@ -447,6 +455,69 @@ export class AnnualMatrixView extends ItemView {
     const [year, month, day] = isoDate.split("-").map((part) => Number.parseInt(part, 10));
     const shifted = new Date(year, month - 1, day + offsetDays);
     return formatDateYYYYMMDD(shifted.getFullYear(), shifted.getMonth(), shifted.getDate());
+  }
+
+  private getVisibleBlockSpanDays(blockId: string, monthIndex: number, startDay: number): number {
+    const daysInMonth = getDaysInMonth(this.displayYear, monthIndex);
+    let spanDays = 1;
+
+    for (let day = startDay + 1; day <= daysInMonth; day += 1) {
+      const isoDate = formatDateYYYYMMDD(this.displayYear, monthIndex, day);
+      const isCovered = this.plugin.getAnnualBlocksForDate(isoDate).some((block) => block.id === blockId);
+      if (!isCovered) {
+        break;
+      }
+      spanDays += 1;
+    }
+
+    return spanDays;
+  }
+
+  private getBlockTextColors(color: string): { primary: string; secondary: string } {
+    const rgb = this.parseHexColor(color);
+    if (!rgb) {
+      return {
+        primary: "#f7fbff",
+        secondary: "rgba(247, 251, 255, 0.7)",
+      };
+    }
+
+    const luminance = (0.2126 * rgb.r + 0.7152 * rgb.g + 0.0722 * rgb.b) / 255;
+    if (luminance >= 0.72) {
+      return {
+        primary: "#162033",
+        secondary: "rgba(22, 32, 51, 0.68)",
+      };
+    }
+
+    return {
+      primary: "#f7fbff",
+      secondary: "rgba(247, 251, 255, 0.7)",
+    };
+  }
+
+  private parseHexColor(color: string): { r: number; g: number; b: number } | null {
+    const normalized = color.trim();
+    const shorthandMatch = /^#([\da-f]{3})$/i.exec(normalized);
+    if (shorthandMatch) {
+      const [r, g, b] = shorthandMatch[1].split("");
+      return {
+        r: Number.parseInt(`${r}${r}`, 16),
+        g: Number.parseInt(`${g}${g}`, 16),
+        b: Number.parseInt(`${b}${b}`, 16),
+      };
+    }
+
+    const fullMatch = /^#([\da-f]{6})$/i.exec(normalized);
+    if (!fullMatch) {
+      return null;
+    }
+
+    return {
+      r: Number.parseInt(fullMatch[1].slice(0, 2), 16),
+      g: Number.parseInt(fullMatch[1].slice(2, 4), 16),
+      b: Number.parseInt(fullMatch[1].slice(4, 6), 16),
+    };
   }
 
   private buildBlockLaneMap(): Map<string, number> {

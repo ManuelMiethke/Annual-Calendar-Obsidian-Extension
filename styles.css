@@ -283,15 +283,15 @@
   display: block;
   padding: 0;
   border-radius: 0;
+  z-index: 1;
   font: inherit;
   font-size: var(--annual-matrix-cell-font-size);
   font-variant-numeric: tabular-nums;
   color: var(--text-normal);
   background:
-    linear-gradient(180deg, color-mix(in srgb, var(--background-primary) 90%, #16243f 10%), color-mix(in srgb, var(--background-primary) 96%, black 4%));
+    linear-gradient(180deg, color-mix(in srgb, var(--background-primary) 94%, #122038 6%), color-mix(in srgb, var(--background-primary) 98%, black 2%));
   cursor: pointer;
-  overflow: hidden;
-  isolation: isolate;
+  overflow: visible;
   transition:
     background-color 120ms ease,
     color 120ms ease,
@@ -320,18 +320,29 @@
 }
 
 .annual-matrix-day-cell.is-past {
-  color: color-mix(in srgb, var(--text-normal) 72%, var(--text-muted) 28%);
+  color: color-mix(in srgb, var(--text-normal) 56%, var(--text-muted) 44%);
   background:
-    linear-gradient(180deg, color-mix(in srgb, var(--background-secondary) 52%, #182941 48%), color-mix(in srgb, var(--background-primary) 94%, black 6%));
+    linear-gradient(180deg, color-mix(in srgb, var(--background-secondary) 78%, #424852 22%), color-mix(in srgb, var(--background-primary) 96%, #2c3138 4%));
 }
 
 .annual-matrix-day-cell.is-weekend {
   background:
-    linear-gradient(180deg, color-mix(in srgb, var(--background-primary) 80%, #2f3f61 20%), color-mix(in srgb, var(--background-primary) 94%, black 6%));
+    linear-gradient(180deg, color-mix(in srgb, var(--background-primary) 94%, #294836 6%), color-mix(in srgb, var(--background-primary) 98%, #17261d 2%));
+}
+
+.annual-matrix-day-cell.is-weekend.is-past {
+  color: color-mix(in srgb, var(--text-normal) 52%, var(--text-muted) 48%);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--background-secondary) 80%, #3a4b40 20%), color-mix(in srgb, var(--background-primary) 96%, #263129 4%));
 }
 
 .annual-matrix-day-cell.has-block {
   box-shadow: none;
+  z-index: 4;
+}
+
+.annual-matrix-day-cell.has-block-label {
+  z-index: 6;
 }
 
 .annual-matrix-day-cell.is-today {
@@ -355,6 +366,7 @@
   background:
     linear-gradient(180deg, color-mix(in srgb, var(--interactive-accent) 20%, var(--background-primary) 80%), color-mix(in srgb, var(--background-primary) 90%, black 10%));
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--interactive-accent) 55%, transparent);
+  z-index: 5;
 }
 
 .annual-matrix-day-cell.has-block.is-selected {
@@ -440,8 +452,8 @@
 
 .annual-matrix-block-bar {
   position: absolute;
-  right: -2px;
-  left: -2px;
+  right: -1px;
+  left: -1px;
   bottom: 0.08rem;
   z-index: 4;
   display: flex;
@@ -451,21 +463,21 @@
   padding: 0 0.28rem;
   border: none;
   border-radius: 0;
-  background: color-mix(in srgb, var(--annual-block-color, var(--interactive-accent)) 88%, white 12%);
+  background: var(--annual-block-color, var(--interactive-accent));
   box-shadow: none;
   pointer-events: none;
-  overflow: hidden;
+  overflow: visible;
   height: 0.68rem;
   bottom: calc(0.08rem + (var(--annual-block-lane, 0) * 0.82rem));
 }
 
 .annual-matrix-block-label {
   position: static;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow: visible;
+  text-overflow: clip;
   white-space: nowrap;
-  color: #f7fbff;
-  max-width: 100%;
+  color: var(--annual-block-text-color, #f7fbff);
+  max-width: none;
   font-size: 0.56rem;
   font-weight: 700;
   letter-spacing: 0.01em;
@@ -473,10 +485,12 @@
 }
 
 .annual-matrix-block-label.is-continuation {
-  color: color-mix(in srgb, #f7fbff 58%, var(--annual-block-color, var(--interactive-accent)) 42%);
+  color: var(--annual-block-text-muted-color, rgba(247, 251, 255, 0.7));
 }
 
 .annual-matrix-block-bar.is-segment-start {
+  right: auto;
+  width: calc((var(--annual-block-span-days, 1) * 100%) + ((var(--annual-block-span-days, 1) - 1) * 1px));
   border-top-left-radius: 999px;
   border-bottom-left-radius: 999px;
 }

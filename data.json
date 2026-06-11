@@ -57,12 +57,28 @@
       "endDate": "2026-08-24"
     },
     {
+      "id": "block-1781179190594-4hie49",
       "title": "Heller Test",
       "category": "general",
       "color": "#d0ddd7",
       "startDate": "2026-04-10",
-      "endDate": "2026-04-13",
-      "id": "block-1781179190594-4hie49"
+      "endDate": "2026-04-13"
+    },
+    {
+      "id": "block-1781179451205-h1hw8t",
+      "title": "München",
+      "category": "general",
+      "color": "#e82630",
+      "startDate": "2026-06-13",
+      "endDate": "2026-06-16"
+    },
+    {
+      "id": "block-1781179521777-yaiw98",
+      "title": "Pimpampum",
+      "category": "general",
+      "color": "#4a8f6f",
+      "startDate": "2026-08-17",
+      "endDate": "2026-08-25"
     }
   ],
   "annualStamps": [
@@ -81,14 +97,14 @@
       "color": "#bb0c18"
     },
     {
+      "id": "stamp-1781179040257-0jn6af",
       "date": "2026-05-25",
       "emoji": "⾭",
       "label": "",
-      "color": "#f59e0b",
-      "id": "stamp-1781179040257-0jn6af"
+      "color": "#f59e0b"
     }
   ],
   "categoryPresets": {
-    "general": "#d0ddd7"
+    "general": "#4a8f6f"
   }
 }
