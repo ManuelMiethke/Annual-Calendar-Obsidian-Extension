@@ -3,7 +3,9 @@ import { ItemView, Notice, WorkspaceLeaf, setIcon } from "obsidian";
 import { AnnualBlockModal } from "./AnnualBlockModal";
 import {
   formatDateYYYYMMDD,
+  getDaysInMonth,
   getMonthNames,
+  getWeekdayNames,
   isDateWithinRange,
   isPast,
   isToday,
@@ -19,6 +21,7 @@ export const ANNUAL_MATRIX_VIEW_TYPE = "annual-matrix-view";
 export class AnnualMatrixView extends ItemView {
   plugin: AnnualMatrixPlugin;
   displayYear: number;
+  private isAnnualBlockListOpen = false;
   private selectionAnchor: string | null = null;
   private selectionFocus: string | null = null;
   private isSelecting = false;
@@ -129,6 +132,25 @@ export class AnnualMatrixView extends ItemView {
       this.render();
     });
 
+    const actions = toolbar.createDiv({ cls: "annual-matrix-toolbar-group annual-matrix-toolbar-actions" });
+
+    const blockListButton = actions.createEl("button", {
+      cls: "annual-matrix-icon-button",
+      attr: {
+        type: "button",
+        "aria-label": this.isAnnualBlockListOpen ? "Hide annual block list" : "Show annual block list",
+        title: this.isAnnualBlockListOpen ? "Hide annual block list" : "Show annual block list",
+      },
+    });
+    setIcon(blockListButton, "list");
+    if (this.isAnnualBlockListOpen) {
+      blockListButton.addClass("is-active");
+    }
+    blockListButton.addEventListener("click", () => {
+      this.isAnnualBlockListOpen = !this.isAnnualBlockListOpen;
+      this.render();
+    });
+
     const selection = this.getSelectionRange();
     if (selection) {
       const selectionInfo = container.createDiv({ cls: "annual-matrix-selection-bar" });
@@ -160,6 +182,15 @@ export class AnnualMatrixView extends ItemView {
   }
 
   private renderGrid(container: HTMLElement): void {
+    if (this.plugin.settings.viewMode === "fixed-week") {
+      this.renderFixedWeekGrid(container);
+      return;
+    }
+
+    this.renderMatrixGrid(container);
+  }
+
+  private renderMatrixGrid(container: HTMLElement): void {
     const gridWrapper = container.createDiv({ cls: "annual-matrix-grid-wrapper" });
     const grid = gridWrapper.createDiv({ cls: "annual-matrix-grid" });
     grid.style.setProperty("--annual-matrix-columns", "8rem repeat(31, minmax(2.2rem, 1fr))");
@@ -183,8 +214,7 @@ export class AnnualMatrixView extends ItemView {
       });
 
       for (let day = 1; day <= 31; day += 1) {
-        const valid = isValidDate(this.displayYear, monthIndex, day);
-        if (!valid) {
+        if (!isValidDate(this.displayYear, monthIndex, day)) {
           const invalidCell = grid.createDiv({
             cls: "annual-matrix-day-cell is-invalid",
             attr: { "aria-disabled": "true" },
@@ -193,84 +223,136 @@ export class AnnualMatrixView extends ItemView {
           continue;
         }
 
-        const isoDate = formatDateYYYYMMDD(this.displayYear, monthIndex, day);
-        const cell = grid.createEl("button", {
-          cls: "annual-matrix-day-cell",
-          text: String(day),
-          attr: {
-            type: "button",
-            title: isoDate,
-          },
-        });
-
-        if (this.plugin.settings.markExistingDailyNotes && dailyNoteExists(this.app, this.displayYear, monthIndex, day, this.plugin.settings)) {
-          cell.addClass("has-note");
-        }
-
-        if (this.plugin.settings.highlightToday && isToday(this.displayYear, monthIndex, day)) {
-          cell.addClass("is-today");
-        }
-
-        if (this.plugin.settings.showPastVisualization && isPast(this.displayYear, monthIndex, day)) {
-          cell.addClass("is-past");
-        }
-
-        if (this.plugin.settings.highlightWeekends && isWeekend(this.displayYear, monthIndex, day)) {
-          cell.addClass("is-weekend");
-        }
-
-        const matchingBlocks = this.plugin.getAnnualBlocksForDate(isoDate);
-        if (matchingBlocks.length > 0) {
-          const [firstBlock] = matchingBlocks;
-          cell.addClass("has-block");
-          cell.style.setProperty("--annual-block-color", firstBlock.color);
-          if (matchingBlocks.length > 1) {
-            cell.addClass("has-multiple-blocks");
-          }
-
-          const blockSummary = matchingBlocks.map((block) => block.title).join(", ");
-          cell.setAttribute("title", `${isoDate} • ${blockSummary}`);
-          cell.setAttribute("aria-label", `${isoDate}. Blocks: ${blockSummary}`);
-        }
-
-        if (this.isDateSelected(isoDate)) {
-          cell.addClass("is-selected");
-          const range = this.getSelectionRange();
-          if (range?.startDate === isoDate) {
-            cell.addClass("is-selection-start");
-          }
-          if (range?.endDate === isoDate) {
-            cell.addClass("is-selection-end");
-          }
-        }
-
-        cell.addEventListener("mousedown", (event) => {
-          this.handleCellMouseDown(event, isoDate);
-        });
-
-        cell.addEventListener("mouseenter", () => {
-          this.handleCellMouseEnter(isoDate);
-        });
-
-        cell.addEventListener("click", async (event) => {
-          if (event.shiftKey) {
-            this.handleShiftClickSelection(isoDate);
-            return;
-          }
-
-          if (this.suppressNextClick) {
-            this.suppressNextClick = false;
-            return;
-          }
-
-          await openOrCreateDailyNote(this.app, this.displayYear, monthIndex, day, this.plugin.settings);
-          await this.refresh();
-        });
+        this.createDateCell(grid, monthIndex, day);
       }
     }
   }
 
+  private renderFixedWeekGrid(container: HTMLElement): void {
+    const gridWrapper = container.createDiv({ cls: "annual-matrix-grid-wrapper" });
+    const sections = gridWrapper.createDiv({ cls: "annual-matrix-fixed-week-grid" });
+
+    const monthNames = getMonthNames(this.plugin.settings.monthLanguage);
+    const weekdayNames = getWeekdayNames(this.plugin.settings.monthLanguage);
+
+    for (let monthIndex = 0; monthIndex < 12; monthIndex += 1) {
+      const section = sections.createDiv({ cls: "annual-matrix-fixed-month" });
+
+      const header = section.createDiv({ cls: "annual-matrix-fixed-month-header" });
+      header.createEl("h3", {
+        cls: "annual-matrix-fixed-month-title",
+        text: monthNames[monthIndex],
+      });
+
+      const monthGrid = section.createDiv({ cls: "annual-matrix-fixed-month-grid" });
+      monthGrid.style.setProperty("--annual-fixed-week-columns", "repeat(7, minmax(2.2rem, 1fr))");
+        monthGrid.style.setProperty("--annual-fixed-week-rows", "repeat(6, minmax(0, 1fr))");
+
+      for (const weekdayName of weekdayNames) {
+        monthGrid.createDiv({
+          cls: "annual-matrix-fixed-weekday-header",
+          text: weekdayName,
+        });
+      }
+
+      const daysInMonth = getDaysInMonth(this.displayYear, monthIndex);
+      const firstWeekdayOffset = (new Date(this.displayYear, monthIndex, 1).getDay() + 6) % 7;
+
+      for (let slot = 0; slot < 42; slot += 1) {
+        const day = slot - firstWeekdayOffset + 1;
+        if (day < 1 || day > daysInMonth) {
+          monthGrid.createDiv({ cls: "annual-matrix-fixed-week-empty-cell" });
+          continue;
+        }
+
+        this.createDateCell(monthGrid, monthIndex, day);
+      }
+    }
+  }
+
+  private createDateCell(container: HTMLElement, monthIndex: number, day: number): HTMLButtonElement {
+    const isoDate = formatDateYYYYMMDD(this.displayYear, monthIndex, day);
+    const cell = container.createEl("button", {
+      cls: "annual-matrix-day-cell",
+      text: String(day),
+      attr: {
+        type: "button",
+        title: isoDate,
+      },
+    });
+
+    if (this.plugin.settings.markExistingDailyNotes && dailyNoteExists(this.app, this.displayYear, monthIndex, day, this.plugin.settings)) {
+      cell.addClass("has-note");
+    }
+
+    if (this.plugin.settings.highlightToday && isToday(this.displayYear, monthIndex, day)) {
+      cell.addClass("is-today");
+    }
+
+    if (this.plugin.settings.showPastVisualization && isPast(this.displayYear, monthIndex, day)) {
+      cell.addClass("is-past");
+    }
+
+    if (this.plugin.settings.highlightWeekends && isWeekend(this.displayYear, monthIndex, day)) {
+      cell.addClass("is-weekend");
+    }
+
+    const matchingBlocks = this.plugin.getAnnualBlocksForDate(isoDate);
+    if (matchingBlocks.length > 0) {
+      const [firstBlock] = matchingBlocks;
+      cell.addClass("has-block");
+      cell.style.setProperty("--annual-block-color", firstBlock.color);
+      if (matchingBlocks.length > 1) {
+        cell.addClass("has-multiple-blocks");
+      }
+
+      const blockSummary = matchingBlocks.map((block) => block.title).join(", ");
+      cell.setAttribute("title", `${isoDate} • ${blockSummary}`);
+      cell.setAttribute("aria-label", `${isoDate}. Blocks: ${blockSummary}`);
+    }
+
+    if (this.isDateSelected(isoDate)) {
+      cell.addClass("is-selected");
+      const range = this.getSelectionRange();
+      if (range?.startDate === isoDate) {
+        cell.addClass("is-selection-start");
+      }
+      if (range?.endDate === isoDate) {
+        cell.addClass("is-selection-end");
+      }
+    }
+
+    cell.addEventListener("mousedown", (event) => {
+      this.handleCellMouseDown(event, isoDate);
+    });
+
+    cell.addEventListener("mouseenter", () => {
+      this.handleCellMouseEnter(isoDate);
+    });
+
+    cell.addEventListener("click", async (event) => {
+      if (event.shiftKey) {
+        this.handleShiftClickSelection(isoDate);
+        return;
+      }
+
+      if (this.suppressNextClick) {
+        this.suppressNextClick = false;
+        return;
+      }
+
+      await openOrCreateDailyNote(this.app, this.displayYear, monthIndex, day, this.plugin.settings);
+      await this.refresh();
+    });
+
+    return cell;
+  }
+
   private renderAnnualBlockPanel(container: HTMLElement): void {
+    if (!this.isAnnualBlockListOpen) {
+      return;
+    }
+
     const blocks = this.plugin.getAnnualBlocksForYear(this.displayYear);
     const panel = container.createDiv({ cls: "annual-matrix-block-panel" });
 

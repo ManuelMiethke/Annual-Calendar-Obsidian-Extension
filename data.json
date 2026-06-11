@@ -1,0 +1,32 @@
+{
+  "settings": {
+    "dailyNotesFolder": "Daily Notes",
+    "dateFormat": "YYYY-MM-DD",
+    "monthLanguage": "de",
+    "viewMode": "matrix",
+    "highlightWeekends": true,
+    "highlightToday": true,
+    "showPastVisualization": true,
+    "markExistingDailyNotes": true,
+    "createDailyNoteOnClick": true,
+    "annualCalendarFolder": "Annual Calendar"
+  },
+  "annualBlocks": [
+    {
+      "id": "block-1781168446057-uzfzp3",
+      "title": "2026-08-27 -> 2026-10-09",
+      "category": "Daimler",
+      "color": "#2fdad7",
+      "startDate": "2026-08-27",
+      "endDate": "2026-10-09"
+    },
+    {
+      "id": "block-1781168498314-w1lvkc",
+      "title": "Fam im Urlaub",
+      "category": "general",
+      "color": "#83fbc3",
+      "startDate": "2026-07-14",
+      "endDate": "2026-07-27"
+    }
+  ]
+}

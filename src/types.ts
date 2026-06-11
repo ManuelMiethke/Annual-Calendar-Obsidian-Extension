@@ -7,10 +7,13 @@ export interface AnnualBlock {
   category: string;
 }
 
+export type AnnualMatrixViewMode = "matrix" | "fixed-week";
+
 export interface AnnualMatrixSettings {
   dailyNotesFolder: string;
   dateFormat: string;
   monthLanguage: "de" | "en";
+  viewMode: AnnualMatrixViewMode;
   highlightWeekends: boolean;
   highlightToday: boolean;
   showPastVisualization: boolean;

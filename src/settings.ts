@@ -7,6 +7,7 @@ export const DEFAULT_SETTINGS: AnnualMatrixSettings = {
   dailyNotesFolder: "Daily Notes",
   dateFormat: "YYYY-MM-DD",
   monthLanguage: "de",
+  viewMode: "matrix",
   highlightWeekends: true,
   highlightToday: true,
   showPastVisualization: true,
@@ -59,6 +60,20 @@ export class AnnualMatrixSettingTab extends PluginSettingTab {
           .setValue(this.plugin.settings.monthLanguage)
           .onChange(async (value) => {
             this.plugin.settings.monthLanguage = value === "en" ? "en" : "de";
+            await this.plugin.savePluginData();
+          }),
+      );
+
+    new Setting(containerEl)
+      .setName("View mode")
+      .setDesc("Choose between the current annual matrix and a fixed-week layout.")
+      .addDropdown((dropdown) =>
+        dropdown
+          .addOption("matrix", "Current matrix")
+          .addOption("fixed-week", "Fixed week")
+          .setValue(this.plugin.settings.viewMode)
+          .onChange(async (value) => {
+            this.plugin.settings.viewMode = value === "fixed-week" ? "fixed-week" : "matrix";
             await this.plugin.savePluginData();
           }),
       );

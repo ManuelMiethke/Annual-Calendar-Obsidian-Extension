@@ -107,3 +107,12 @@ export function isWeekend(year: number, monthIndex: number, day: number): boolea
 export function getMonthNames(language: "de" | "en"): readonly string[] {
   return MONTH_NAMES[language];
 }
+
+const WEEKDAY_NAMES = {
+  de: ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"],
+  en: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+} as const;
+
+export function getWeekdayNames(language: "de" | "en"): readonly string[] {
+  return WEEKDAY_NAMES[language];
+}
