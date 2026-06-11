@@ -15,18 +15,16 @@ export interface AnnualStamp {
   color: string;
 }
 
+export type AnnualCategoryPresets = Record<string, string>;
+
 export type AnnualMatrixViewMode = "matrix" | "fixed-week";
 
 export interface AnnualMatrixSettings {
-  dailyNotesFolder: string;
-  dateFormat: string;
   monthLanguage: "de" | "en";
   viewMode: AnnualMatrixViewMode;
   highlightWeekends: boolean;
   highlightToday: boolean;
   showPastVisualization: boolean;
-  markExistingDailyNotes: boolean;
-  createDailyNoteOnClick: boolean;
   annualCalendarFolder: string;
 }
 
@@ -34,4 +32,5 @@ export interface AnnualMatrixPluginData {
   settings: AnnualMatrixSettings;
   annualBlocks: AnnualBlock[];
   annualStamps: AnnualStamp[];
+  categoryPresets: AnnualCategoryPresets;
 }

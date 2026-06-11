@@ -1,11 +1,13 @@
 import { ItemView, Notice, WorkspaceLeaf, setIcon } from "obsidian";
 
 import { AnnualBlockModal } from "./AnnualBlockModal";
+import { AnnualStampModal } from "./AnnualStampModal";
 import {
   formatDateYYYYMMDD,
   getDaysInMonth,
   getMonthNames,
-  getWeekdayNames,
+  getWeekdayInitialsSundayFirst,
+  getWeekdayNameForDate,
   isDateWithinRange,
   isPast,
   isToday,
@@ -13,14 +15,15 @@ import {
   isWeekend,
   normalizeDateRange,
 } from "./dateUtils";
-import { dailyNoteExists, openOrCreateDailyNote } from "./fileUtils";
 import type AnnualMatrixPlugin from "./main";
+import type { AnnualBlock, AnnualStamp } from "./types";
 
 export const ANNUAL_MATRIX_VIEW_TYPE = "annual-matrix-view";
 
 export class AnnualMatrixView extends ItemView {
   plugin: AnnualMatrixPlugin;
   displayYear: number;
+  private blockLaneMap = new Map<string, number>();
   private isAnnualBlockListOpen = false;
   private selectionAnchor: string | null = null;
   private selectionFocus: string | null = null;
@@ -65,6 +68,7 @@ export class AnnualMatrixView extends ItemView {
     const { contentEl } = this;
     contentEl.empty();
     contentEl.addClass("annual-matrix-view");
+    this.blockLaneMap = this.buildBlockLaneMap();
 
     this.renderToolbar(contentEl);
     this.renderAnnualBlockPanel(contentEl);
@@ -133,13 +137,32 @@ export class AnnualMatrixView extends ItemView {
     });
 
     const actions = toolbar.createDiv({ cls: "annual-matrix-toolbar-group annual-matrix-toolbar-actions" });
+    const selection = this.getSelectionRange();
+
+    const stampButton = actions.createEl("button", {
+      cls: "annual-matrix-icon-button",
+      attr: {
+        type: "button",
+        "aria-label": "Add stamp to selected day",
+        title: "Add stamp to selected day",
+      },
+    });
+    setIcon(stampButton, "stamp");
+    stampButton.addEventListener("click", () => {
+      if (!selection || selection.startDate !== selection.endDate) {
+        new Notice("Shift-click a single day first to add a stamp.");
+        return;
+      }
+
+      void this.openAnnualStampModal(selection.startDate);
+    });
 
     const blockListButton = actions.createEl("button", {
       cls: "annual-matrix-icon-button",
       attr: {
         type: "button",
-        "aria-label": this.isAnnualBlockListOpen ? "Hide annual block list" : "Show annual block list",
-        title: this.isAnnualBlockListOpen ? "Hide annual block list" : "Show annual block list",
+        "aria-label": this.isAnnualBlockListOpen ? "Hide annual details" : "Show annual details",
+        title: this.isAnnualBlockListOpen ? "Hide annual details" : "Show annual details",
       },
     });
     setIcon(blockListButton, "list");
@@ -151,7 +174,6 @@ export class AnnualMatrixView extends ItemView {
       this.render();
     });
 
-    const selection = this.getSelectionRange();
     if (selection) {
       const selectionInfo = container.createDiv({ cls: "annual-matrix-selection-bar" });
       selectionInfo.createSpan({
@@ -178,6 +200,16 @@ export class AnnualMatrixView extends ItemView {
         this.clearSelection();
         this.render();
       });
+
+      if (selection.startDate === selection.endDate) {
+        const createStampButton = selectionInfo.createEl("button", {
+          text: "Add Stamp",
+          attr: { type: "button" },
+        });
+        createStampButton.addEventListener("click", () => {
+          void this.openAnnualStampModal(selection.startDate);
+        });
+      }
     }
   }
 
@@ -193,16 +225,6 @@ export class AnnualMatrixView extends ItemView {
   private renderMatrixGrid(container: HTMLElement): void {
     const gridWrapper = container.createDiv({ cls: "annual-matrix-grid-wrapper" });
     const grid = gridWrapper.createDiv({ cls: "annual-matrix-grid" });
-
-    const corner = grid.createDiv({ cls: "annual-matrix-header-cell annual-matrix-corner-cell" });
-    setIcon(corner, "calendar-range");
-
-    for (let day = 1; day <= 31; day += 1) {
-      grid.createDiv({
-        cls: "annual-matrix-header-cell annual-matrix-day-header",
-        text: String(day),
-      });
-    }
 
     const monthNames = getMonthNames();
 
@@ -222,7 +244,7 @@ export class AnnualMatrixView extends ItemView {
           continue;
         }
 
-        this.createDateCell(grid, monthIndex, day);
+        this.createDateCell(grid, monthIndex, day, { showWeekdayLabel: true });
       }
     }
   }
@@ -230,18 +252,17 @@ export class AnnualMatrixView extends ItemView {
   private renderFixedWeekGrid(container: HTMLElement): void {
     const gridWrapper = container.createDiv({ cls: "annual-matrix-grid-wrapper" });
     const grid = gridWrapper.createDiv({ cls: "annual-matrix-fixed-week-grid" });
+    const weekdayInitials = getWeekdayInitialsSundayFirst(this.plugin.settings.monthLanguage);
+    const fixedWeekColumns = 37;
 
     const monthNames = getMonthNames();
-    const weekdayNames = getWeekdayNames();
-
     const corner = grid.createDiv({ cls: "annual-matrix-header-cell annual-matrix-corner-cell" });
     setIcon(corner, "calendar-range");
 
-    for (let day = 1; day <= 31; day += 1) {
-      const weekdayIndex = this.getWeekdayIndexForColumn(day);
+    for (let column = 0; column < fixedWeekColumns; column += 1) {
       grid.createDiv({
-        cls: "annual-matrix-header-cell annual-matrix-day-header",
-        text: weekdayNames[weekdayIndex],
+        cls: "annual-matrix-header-cell annual-matrix-fixed-week-header",
+        text: weekdayInitials[column % weekdayInitials.length],
       });
     }
 
@@ -251,34 +272,50 @@ export class AnnualMatrixView extends ItemView {
         text: monthNames[monthIndex],
       });
 
-      const startWeekdayOffset = this.getWeekdayOffsetForMonthStart(monthIndex);
+      const startWeekdayOffset = new Date(this.displayYear, monthIndex, 1).getDay();
       const daysInMonth = getDaysInMonth(this.displayYear, monthIndex);
 
-      for (let column = 1; column <= 31; column += 1) {
-        const day = column - startWeekdayOffset;
+      for (let column = 0; column < fixedWeekColumns; column += 1) {
+        const day = column - startWeekdayOffset + 1;
         if (day < 1 || day > daysInMonth) {
-          grid.createDiv({ cls: "annual-matrix-day-cell is-invalid", attr: { "aria-disabled": "true" } });
+          grid.createDiv({ cls: "annual-matrix-day-cell is-invalid annual-matrix-fixed-week-empty", attr: { "aria-disabled": "true" } });
           continue;
         }
 
-        this.createDateCell(grid, monthIndex, day);
+        this.createDateCell(grid, monthIndex, day, { isFixedWeek: true });
       }
     }
   }
 
-  private createDateCell(container: HTMLElement, monthIndex: number, day: number): HTMLButtonElement {
+  private createDateCell(
+    container: HTMLElement,
+    monthIndex: number,
+    day: number,
+    options: { isFixedWeek?: boolean; showWeekdayLabel?: boolean } = {},
+  ): HTMLButtonElement {
     const isoDate = formatDateYYYYMMDD(this.displayYear, monthIndex, day);
     const cell = container.createEl("button", {
       cls: "annual-matrix-day-cell",
-      text: String(day),
       attr: {
         type: "button",
         title: isoDate,
       },
     });
 
-    if (this.plugin.settings.markExistingDailyNotes && dailyNoteExists(this.app, this.displayYear, monthIndex, day, this.plugin.settings)) {
-      cell.addClass("has-note");
+    const head = cell.createDiv({ cls: "annual-matrix-cell-head" });
+    head.createSpan({
+      cls: "annual-matrix-day-number",
+      text: String(day),
+    });
+    if (options.showWeekdayLabel) {
+      head.createSpan({
+        cls: "annual-matrix-day-weekday",
+        text: getWeekdayNameForDate(this.displayYear, monthIndex, day),
+      });
+      cell.addClass("shows-weekday-label");
+    }
+    if (options.isFixedWeek) {
+      cell.addClass("is-fixed-week-cell");
     }
 
     if (this.plugin.settings.highlightToday && isToday(this.displayYear, monthIndex, day)) {
@@ -294,34 +331,83 @@ export class AnnualMatrixView extends ItemView {
     }
 
     const matchingBlocks = this.plugin.getAnnualBlocksForDate(isoDate);
+    const matchingStamps = this.plugin.getAnnualStampsForDate(isoDate);
+
     if (matchingBlocks.length > 0) {
-      const [firstBlock] = matchingBlocks;
       cell.addClass("has-block");
-      cell.style.setProperty("--annual-block-color", firstBlock.color);
+      const sortedBlocks = [...matchingBlocks].sort((left, right) => {
+        const leftLane = this.blockLaneMap.get(left.id) ?? 0;
+        const rightLane = this.blockLaneMap.get(right.id) ?? 0;
+        if (leftLane !== rightLane) {
+          return leftLane - rightLane;
+        }
 
-      const previousDate = this.shiftIsoDate(isoDate, -1);
-      const nextDate = this.shiftIsoDate(isoDate, 1);
-      const isBlockStart = !this.plugin.getAnnualBlocksForDate(previousDate).some((block) => block.id === firstBlock.id);
-      const isBlockEnd = !this.plugin.getAnnualBlocksForDate(nextDate).some((block) => block.id === firstBlock.id);
+        if (left.startDate !== right.startDate) {
+          return left.startDate.localeCompare(right.startDate);
+        }
 
-      if (isBlockStart) {
-        cell.addClass("has-block-start");
-      }
-      if (!isBlockStart && !isBlockEnd) {
-        cell.addClass("has-block-middle");
-      }
-      if (isBlockEnd) {
-        cell.addClass("has-block-end");
-      }
+        return left.endDate.localeCompare(right.endDate);
+      });
 
-      if (matchingBlocks.length > 1) {
-        cell.addClass("has-multiple-blocks");
+      for (const block of sortedBlocks) {
+        const lane = this.blockLaneMap.get(block.id) ?? 0;
+        const previousDate = this.shiftIsoDate(isoDate, -1);
+        const nextDate = this.shiftIsoDate(isoDate, 1);
+        const isBlockStart = !this.plugin.getAnnualBlocksForDate(previousDate).some((candidate) => candidate.id === block.id);
+        const isBlockEnd = !this.plugin.getAnnualBlocksForDate(nextDate).some((candidate) => candidate.id === block.id);
+        const isVisibleSegmentStart = isBlockStart || day === 1;
+        const isVisibleSegmentEnd = isBlockEnd || day === getDaysInMonth(this.displayYear, monthIndex);
+        const shouldShowBlockLabel = isVisibleSegmentStart;
+        const blockBar = cell.createDiv({ cls: "annual-matrix-block-bar" });
+        blockBar.style.setProperty("--annual-block-color", block.color);
+        blockBar.style.setProperty("--annual-block-lane", String(lane));
+        if (isVisibleSegmentStart) {
+          blockBar.addClass("is-segment-start");
+        }
+        if (!isVisibleSegmentStart && !isVisibleSegmentEnd) {
+          blockBar.addClass("is-segment-middle");
+        }
+        if (isVisibleSegmentEnd) {
+          blockBar.addClass("is-segment-end");
+        }
+        if (shouldShowBlockLabel) {
+          blockBar.createSpan({
+            cls: `annual-matrix-block-label${isBlockStart ? "" : " is-continuation"}`,
+            text: block.title,
+          });
+        }
       }
-
-      const blockSummary = matchingBlocks.map((block) => block.title).join(", ");
-      cell.setAttribute("title", `${isoDate} • ${blockSummary}`);
-      cell.setAttribute("aria-label", `${isoDate}. Blocks: ${blockSummary}`);
     }
+
+    if (matchingStamps.length > 0) {
+      const [firstStamp] = matchingStamps;
+      cell.addClass("has-stamp");
+      cell.style.setProperty("--annual-stamp-color", firstStamp.color);
+
+      const stampRow = cell.createDiv({ cls: "annual-matrix-stamp-row" });
+      stampRow.createSpan({
+        cls: "annual-matrix-stamp-badge",
+        text: firstStamp.emoji,
+      });
+      if (matchingStamps.length > 1) {
+        stampRow.createSpan({
+          cls: "annual-matrix-stamp-count",
+          text: `+${matchingStamps.length - 1}`,
+        });
+      }
+    }
+
+    const titleParts = [isoDate];
+    if (matchingBlocks.length > 0) {
+      titleParts.push(`Blocks: ${matchingBlocks.map((block) => block.title).join(", ")}`);
+    }
+    if (matchingStamps.length > 0) {
+      titleParts.push(
+        `Stamps: ${matchingStamps.map((stamp) => stamp.label || stamp.emoji).join(", ")}`,
+      );
+    }
+    cell.setAttribute("title", titleParts.join(" • "));
+    cell.setAttribute("aria-label", titleParts.join(". "));
 
     if (this.isDateSelected(isoDate)) {
       cell.addClass("is-selected");
@@ -352,9 +438,6 @@ export class AnnualMatrixView extends ItemView {
         this.suppressNextClick = false;
         return;
       }
-
-      await openOrCreateDailyNote(this.app, this.displayYear, monthIndex, day, this.plugin.settings);
-      await this.refresh();
     });
 
     return cell;
@@ -366,12 +449,30 @@ export class AnnualMatrixView extends ItemView {
     return formatDateYYYYMMDD(shifted.getFullYear(), shifted.getMonth(), shifted.getDate());
   }
 
-  private getWeekdayOffsetForMonthStart(monthIndex: number): number {
-    return (new Date(this.displayYear, monthIndex, 1).getDay() + 6) % 7;
-  }
+  private buildBlockLaneMap(): Map<string, number> {
+    const laneMap = new Map<string, number>();
+    const laneEndDates: string[] = [];
+    const blocks = [...this.plugin.getAnnualBlocksForYear(this.displayYear)].sort((left, right) => {
+      if (left.startDate !== right.startDate) {
+        return left.startDate.localeCompare(right.startDate);
+      }
 
-  private getWeekdayIndexForColumn(column: number): number {
-    return (column - 1) % 7;
+      return right.endDate.localeCompare(left.endDate);
+    });
+
+    for (const block of blocks) {
+      let lane = laneEndDates.findIndex((endDate) => endDate < block.startDate);
+      if (lane === -1) {
+        lane = laneEndDates.length;
+        laneEndDates.push(block.endDate);
+      } else {
+        laneEndDates[lane] = block.endDate;
+      }
+
+      laneMap.set(block.id, lane);
+    }
+
+    return laneMap;
   }
 
   private renderAnnualBlockPanel(container: HTMLElement): void {
@@ -380,80 +481,151 @@ export class AnnualMatrixView extends ItemView {
     }
 
     const blocks = this.plugin.getAnnualBlocksForYear(this.displayYear);
+    const stamps = this.plugin.getAnnualStampsForYear(this.displayYear);
     const panel = container.createDiv({ cls: "annual-matrix-block-panel" });
 
     const header = panel.createDiv({ cls: "annual-matrix-block-panel-header" });
     header.createEl("h3", {
       cls: "annual-matrix-block-panel-title",
-      text: `Annual Blocks ${this.displayYear}`,
+      text: `Highlights ${this.displayYear}`,
     });
     header.createSpan({
       cls: "annual-matrix-block-count",
-      text: `${blocks.length}`,
+      text: `${blocks.length + stamps.length}`,
     });
 
-    if (blocks.length === 0) {
+    if (blocks.length === 0 && stamps.length === 0) {
       panel.createEl("p", {
         cls: "annual-matrix-block-empty",
-        text: "No annual blocks for this year yet. Drag across dates or use Shift-click to create one.",
+        text: "No highlights for this year yet. Drag across dates for blocks or Shift-click a day to add a stamp.",
       });
       return;
     }
 
-    const list = panel.createDiv({ cls: "annual-matrix-block-list" });
-
-    for (const block of blocks) {
-      const item = list.createDiv({ cls: "annual-matrix-block-item" });
-      item.style.setProperty("--annual-block-color", block.color);
-
-      const content = item.createDiv({ cls: "annual-matrix-block-content" });
-      content.addEventListener("click", () => {
-        this.selectionAnchor = block.startDate;
-        this.selectionFocus = block.endDate;
-        this.render();
+    if (blocks.length > 0) {
+      const blockSection = panel.createDiv({ cls: "annual-matrix-panel-section" });
+      blockSection.createEl("h4", {
+        cls: "annual-matrix-panel-section-title",
+        text: "Blocks",
       });
 
-      const titleRow = content.createDiv({ cls: "annual-matrix-block-title-row" });
-      titleRow.createSpan({ cls: "annual-matrix-block-swatch" });
-      titleRow.createEl("strong", {
-        cls: "annual-matrix-block-item-title",
-        text: block.title,
-      });
+      const list = blockSection.createDiv({ cls: "annual-matrix-block-list" });
 
-      content.createDiv({
-        cls: "annual-matrix-block-dates",
-        text:
-          block.startDate === block.endDate
-            ? block.startDate
-            : `${block.startDate} -> ${block.endDate}`,
-      });
-
-      content.createSpan({
-        cls: "annual-matrix-block-category",
-        text: block.category,
-      });
-
-      const deleteButton = item.createEl("button", {
-        cls: "annual-matrix-block-delete",
-        text: "Delete",
-        attr: {
-          type: "button",
-          "aria-label": `Delete annual block ${block.title}`,
-        },
-      });
-      deleteButton.addEventListener("click", async () => {
-        await this.plugin.removeAnnualBlock(block.id);
-        const selection = this.getSelectionRange();
-        if (
-          selection &&
-          selection.startDate === block.startDate &&
-          selection.endDate === block.endDate
-        ) {
-          this.clearSelection();
-        }
-        await this.refresh();
-      });
+      for (const block of blocks) {
+        this.renderBlockListItem(list, block);
+      }
     }
+
+    if (stamps.length > 0) {
+      const stampSection = panel.createDiv({ cls: "annual-matrix-panel-section" });
+      stampSection.createEl("h4", {
+        cls: "annual-matrix-panel-section-title",
+        text: "Stamps",
+      });
+
+      const list = stampSection.createDiv({ cls: "annual-matrix-block-list" });
+
+      for (const stamp of stamps) {
+        this.renderStampListItem(list, stamp);
+      }
+    }
+  }
+
+  private renderBlockListItem(container: HTMLElement, block: AnnualBlock): void {
+    const item = container.createDiv({ cls: "annual-matrix-block-item" });
+    item.style.setProperty("--annual-block-color", block.color);
+
+    const content = item.createDiv({ cls: "annual-matrix-block-content" });
+    content.addEventListener("click", () => {
+      this.selectionAnchor = block.startDate;
+      this.selectionFocus = block.endDate;
+      this.render();
+    });
+
+    const titleRow = content.createDiv({ cls: "annual-matrix-block-title-row" });
+    titleRow.createSpan({ cls: "annual-matrix-block-swatch" });
+    titleRow.createEl("strong", {
+      cls: "annual-matrix-block-item-title",
+      text: block.title,
+    });
+
+    content.createDiv({
+      cls: "annual-matrix-block-dates",
+      text:
+        block.startDate === block.endDate
+          ? block.startDate
+          : `${block.startDate} -> ${block.endDate}`,
+    });
+
+    content.createSpan({
+      cls: "annual-matrix-block-category",
+      text: block.category,
+    });
+
+    const deleteButton = item.createEl("button", {
+      cls: "annual-matrix-block-delete",
+      text: "Delete",
+      attr: {
+        type: "button",
+        "aria-label": `Delete annual block ${block.title}`,
+      },
+    });
+    deleteButton.addEventListener("click", async () => {
+      await this.plugin.removeAnnualBlock(block.id);
+      const selection = this.getSelectionRange();
+      if (
+        selection &&
+        selection.startDate === block.startDate &&
+        selection.endDate === block.endDate
+      ) {
+        this.clearSelection();
+      }
+      await this.refresh();
+    });
+  }
+
+  private renderStampListItem(container: HTMLElement, stamp: AnnualStamp): void {
+    const item = container.createDiv({ cls: "annual-matrix-block-item annual-matrix-stamp-item" });
+    item.style.setProperty("--annual-block-color", stamp.color);
+
+    const content = item.createDiv({ cls: "annual-matrix-block-content" });
+    content.addEventListener("click", () => {
+      this.selectionAnchor = stamp.date;
+      this.selectionFocus = stamp.date;
+      this.render();
+    });
+
+    const titleRow = content.createDiv({ cls: "annual-matrix-block-title-row" });
+    titleRow.createSpan({
+      cls: "annual-matrix-stamp-item-emoji",
+      text: stamp.emoji,
+    });
+    titleRow.createEl("strong", {
+      cls: "annual-matrix-block-item-title",
+      text: stamp.label || stamp.date,
+    });
+
+    content.createDiv({
+      cls: "annual-matrix-block-dates",
+      text: stamp.date,
+    });
+
+    const deleteButton = item.createEl("button", {
+      cls: "annual-matrix-block-delete",
+      text: "Delete",
+      attr: {
+        type: "button",
+        "aria-label": `Delete stamp ${stamp.label || stamp.emoji}`,
+      },
+    });
+    deleteButton.addEventListener("click", async () => {
+      await this.plugin.removeAnnualStamp(stamp.id);
+      const selection = this.getSelectionRange();
+      if (selection && selection.startDate === stamp.date && selection.endDate === stamp.date) {
+        this.clearSelection();
+      }
+      await this.refresh();
+    });
   }
 
   private handleCellMouseDown(event: MouseEvent, isoDate: string): void {
@@ -552,13 +724,39 @@ export class AnnualMatrixView extends ItemView {
       this.app,
       normalized.startDate,
       normalized.endDate,
+      this.plugin.categoryPresets,
+      this.plugin.getCategoryPresetNames(),
       async (result) => {
+        this.plugin.rememberCategoryColorPreset(result.category, result.color);
         await this.plugin.addAnnualBlock({
           title: result.title,
           category: result.category,
           color: result.color,
           startDate: normalized.startDate,
           endDate: normalized.endDate,
+        });
+        this.clearSelection();
+        await this.refresh();
+      },
+      () => {
+        this.clearSelection();
+        void this.refresh();
+      },
+    );
+
+    modal.open();
+  }
+
+  private async openAnnualStampModal(date: string): Promise<void> {
+    const modal = new AnnualStampModal(
+      this.app,
+      date,
+      async (result) => {
+        await this.plugin.addAnnualStamp({
+          date,
+          emoji: result.emoji,
+          label: result.label,
+          color: result.color,
         });
         this.clearSelection();
         await this.refresh();

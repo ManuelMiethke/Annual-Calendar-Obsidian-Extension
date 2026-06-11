@@ -4,15 +4,11 @@ import type AnnualMatrixPlugin from "./main";
 import type { AnnualMatrixSettings } from "./types";
 
 export const DEFAULT_SETTINGS: AnnualMatrixSettings = {
-  dailyNotesFolder: "Daily Notes",
-  dateFormat: "YYYY-MM-DD",
   monthLanguage: "en",
   viewMode: "matrix",
   highlightWeekends: true,
   highlightToday: true,
   showPastVisualization: true,
-  markExistingDailyNotes: true,
-  createDailyNoteOnClick: true,
   annualCalendarFolder: "Annual Calendar",
 };
 
@@ -30,32 +26,12 @@ export class AnnualMatrixSettingTab extends PluginSettingTab {
 
     containerEl.createEl("h2", { text: "Annual Calendar" });
 
-    this.addTextSetting(
-      "Daily Notes Folder",
-      "Folder used for daily note files.",
-      this.plugin.settings.dailyNotesFolder,
-      async (value) => {
-        this.plugin.settings.dailyNotesFolder = value.trim() || DEFAULT_SETTINGS.dailyNotesFolder;
-        await this.plugin.savePluginData();
-      },
-    );
-
-    this.addTextSetting(
-      "Date Format",
-      "Filename pattern for daily notes. Supported tokens: YYYY, MM, DD.",
-      this.plugin.settings.dateFormat,
-      async (value) => {
-        this.plugin.settings.dateFormat = value.trim() || DEFAULT_SETTINGS.dateFormat;
-        await this.plugin.savePluginData();
-      },
-    );
-
     new Setting(containerEl)
       .setName("View mode")
-      .setDesc("Choose between the annual calendar grid and a fixed-week layout.")
+      .setDesc("Choose between the date grid and a fixed-week layout.")
       .addDropdown((dropdown) =>
         dropdown
-          .addOption("matrix", "Annual calendar")
+          .addOption("matrix", "Date Grid")
           .addOption("fixed-week", "Fixed week")
           .setValue(this.plugin.settings.viewMode)
           .onChange(async (value) => {
@@ -90,26 +66,6 @@ export class AnnualMatrixSettingTab extends PluginSettingTab {
       this.plugin.settings.showPastVisualization,
       async (value) => {
         this.plugin.settings.showPastVisualization = value;
-        await this.plugin.savePluginData();
-      },
-    );
-
-    this.addToggleSetting(
-      "Mark existing daily notes",
-      "Highlight cells that already have a daily note file.",
-      this.plugin.settings.markExistingDailyNotes,
-      async (value) => {
-        this.plugin.settings.markExistingDailyNotes = value;
-        await this.plugin.savePluginData();
-      },
-    );
-
-    this.addToggleSetting(
-      "Create daily note on click",
-      "Create a missing daily note automatically when a date is clicked.",
-      this.plugin.settings.createDailyNoteOnClick,
-      async (value) => {
-        this.plugin.settings.createDailyNoteOnClick = value;
         await this.plugin.savePluginData();
       },
     );

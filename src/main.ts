@@ -3,12 +3,19 @@ import { Plugin, WorkspaceLeaf } from "obsidian";
 import { ANNUAL_MATRIX_VIEW_TYPE, AnnualMatrixView } from "./AnnualMatrixView";
 import { isDateWithinRange, normalizeDateRange } from "./dateUtils";
 import { AnnualMatrixSettingTab, DEFAULT_SETTINGS } from "./settings";
-import type { AnnualBlock, AnnualMatrixPluginData, AnnualMatrixSettings, AnnualStamp } from "./types";
+import type {
+  AnnualBlock,
+  AnnualCategoryPresets,
+  AnnualMatrixPluginData,
+  AnnualMatrixSettings,
+  AnnualStamp,
+} from "./types";
 
 export default class AnnualMatrixPlugin extends Plugin {
   settings: AnnualMatrixSettings = DEFAULT_SETTINGS;
   annualBlocks: AnnualBlock[] = [];
   annualStamps: AnnualStamp[] = [];
+  categoryPresets: AnnualCategoryPresets = {};
 
   async onload(): Promise<void> {
     await this.loadPluginData();
@@ -68,19 +75,22 @@ export default class AnnualMatrixPlugin extends Plugin {
       this.settings = { ...DEFAULT_SETTINGS };
       this.annualBlocks = [];
       this.annualStamps = [];
+      this.categoryPresets = {};
       return;
     }
 
     if ("settings" in loaded) {
-      this.settings = { ...DEFAULT_SETTINGS, ...loaded.settings };
+      this.settings = this.normalizeSettings(loaded.settings);
       this.annualBlocks = this.normalizeAnnualBlocks(loaded.annualBlocks);
       this.annualStamps = this.normalizeAnnualStamps(loaded.annualStamps);
+      this.categoryPresets = this.normalizeCategoryPresets(loaded.categoryPresets);
       return;
     }
 
-    this.settings = { ...DEFAULT_SETTINGS, ...loaded };
+    this.settings = this.normalizeSettings(loaded);
     this.annualBlocks = [];
     this.annualStamps = [];
+    this.categoryPresets = {};
   }
 
   async savePluginData(): Promise<void> {
@@ -88,6 +98,7 @@ export default class AnnualMatrixPlugin extends Plugin {
       settings: this.settings,
       annualBlocks: this.annualBlocks,
       annualStamps: this.annualStamps,
+      categoryPresets: this.categoryPresets,
     };
     await this.saveData(payload);
     await this.refreshAllViews();
@@ -112,6 +123,19 @@ export default class AnnualMatrixPlugin extends Plugin {
 
   getAnnualStampsForDate(date: string): AnnualStamp[] {
     return this.annualStamps.filter((stamp) => stamp.date === date);
+  }
+
+  getCategoryColorPreset(category: string): string | null {
+    const normalizedCategory = category.trim().toLowerCase();
+    if (!normalizedCategory) {
+      return null;
+    }
+
+    return this.categoryPresets[normalizedCategory] ?? null;
+  }
+
+  getCategoryPresetNames(): string[] {
+    return Object.keys(this.categoryPresets).sort((left, right) => left.localeCompare(right));
   }
 
   async addAnnualBlock(block: Omit<AnnualBlock, "id">): Promise<AnnualBlock> {
@@ -143,6 +167,23 @@ export default class AnnualMatrixPlugin extends Plugin {
 
   async removeAnnualStamp(stampId: string): Promise<void> {
     this.annualStamps = this.annualStamps.filter((stamp) => stamp.id !== stampId);
+    await this.savePluginData();
+  }
+
+  rememberCategoryColorPreset(category: string, color: string): void {
+    const normalizedCategory = category.trim().toLowerCase();
+    if (!normalizedCategory) {
+      return;
+    }
+
+    this.categoryPresets = {
+      ...this.categoryPresets,
+      [normalizedCategory]: color,
+    };
+  }
+
+  async saveCategoryColorPreset(category: string, color: string): Promise<void> {
+    this.rememberCategoryColorPreset(category, color);
     await this.savePluginData();
   }
 
@@ -202,5 +243,40 @@ export default class AnnualMatrixPlugin extends Plugin {
           color: typeof stamp.color === "string" && stamp.color.trim().length > 0 ? stamp.color : "#f59e0b",
         };
       });
+  }
+
+  private normalizeCategoryPresets(presets: unknown): AnnualCategoryPresets {
+    if (!presets || typeof presets !== "object") {
+      return {};
+    }
+
+    return Object.entries(presets).reduce<AnnualCategoryPresets>((accumulator, [category, color]) => {
+      const normalizedCategory = category.trim().toLowerCase();
+      if (!normalizedCategory || typeof color !== "string" || color.trim().length === 0) {
+        return accumulator;
+      }
+
+      accumulator[normalizedCategory] = color;
+      return accumulator;
+    }, {});
+  }
+
+  private normalizeSettings(settings: unknown): AnnualMatrixSettings {
+    if (!settings || typeof settings !== "object") {
+      return { ...DEFAULT_SETTINGS };
+    }
+
+    const raw = settings as Partial<AnnualMatrixSettings> & Record<string, unknown>;
+    return {
+      ...DEFAULT_SETTINGS,
+      monthLanguage: raw.monthLanguage === "de" ? "de" : DEFAULT_SETTINGS.monthLanguage,
+      viewMode: raw.viewMode === "fixed-week" ? "fixed-week" : DEFAULT_SETTINGS.viewMode,
+      highlightWeekends: typeof raw.highlightWeekends === "boolean" ? raw.highlightWeekends : DEFAULT_SETTINGS.highlightWeekends,
+      highlightToday: typeof raw.highlightToday === "boolean" ? raw.highlightToday : DEFAULT_SETTINGS.highlightToday,
+      showPastVisualization: typeof raw.showPastVisualization === "boolean" ? raw.showPastVisualization : DEFAULT_SETTINGS.showPastVisualization,
+      annualCalendarFolder: typeof raw.annualCalendarFolder === "string" && raw.annualCalendarFolder.trim().length > 0
+        ? raw.annualCalendarFolder
+        : DEFAULT_SETTINGS.annualCalendarFolder,
+    };
   }
 }

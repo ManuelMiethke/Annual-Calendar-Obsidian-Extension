@@ -1,14 +1,10 @@
 {
   "settings": {
-    "dailyNotesFolder": "Daily Notes",
-    "dateFormat": "YYYY-MM-DD",
     "monthLanguage": "de",
-    "viewMode": "fixed-week",
+    "viewMode": "matrix",
     "highlightWeekends": true,
     "highlightToday": true,
     "showPastVisualization": true,
-    "markExistingDailyNotes": true,
-    "createDailyNoteOnClick": true,
     "annualCalendarFolder": "Annual Calendar"
   },
   "annualBlocks": [
@@ -29,12 +25,70 @@
       "endDate": "2026-07-27"
     },
     {
+      "id": "block-1781173252791-1235bt",
       "title": "Annual",
       "category": "friends",
       "color": "#914b4b",
       "startDate": "2026-10-12",
-      "endDate": "2026-10-15",
-      "id": "block-1781173252791-1235bt"
+      "endDate": "2026-10-15"
+    },
+    {
+      "id": "block-1781174148510-2jx1og",
+      "title": "Jojojo",
+      "category": "general",
+      "color": "#2bab6f",
+      "startDate": "2026-02-10",
+      "endDate": "2026-02-17"
+    },
+    {
+      "id": "block-1781176948154-vzqm1v",
+      "title": "Test",
+      "category": "general",
+      "color": "#2d2b91",
+      "startDate": "2026-08-17",
+      "endDate": "2026-08-22"
+    },
+    {
+      "id": "block-1781176967020-gm83s2",
+      "title": "Doppelt",
+      "category": "general",
+      "color": "#2d2b91",
+      "startDate": "2026-08-17",
+      "endDate": "2026-08-24"
+    },
+    {
+      "title": "Heller Test",
+      "category": "general",
+      "color": "#d0ddd7",
+      "startDate": "2026-04-10",
+      "endDate": "2026-04-13",
+      "id": "block-1781179190594-4hie49"
     }
-  ]
+  ],
+  "annualStamps": [
+    {
+      "id": "stamp-1781174051476-5iaom3",
+      "date": "2026-04-18",
+      "emoji": "✨",
+      "label": "",
+      "color": "#f59e0b"
+    },
+    {
+      "id": "stamp-1781176826243-89dgl2",
+      "date": "2026-11-23",
+      "emoji": "🚴🏼‍♂️",
+      "label": "yo",
+      "color": "#bb0c18"
+    },
+    {
+      "date": "2026-05-25",
+      "emoji": "⾭",
+      "label": "",
+      "color": "#f59e0b",
+      "id": "stamp-1781179040257-0jn6af"
+    }
+  ],
+  "categoryPresets": {
+    "general": "#d0ddd7"
+  }
 }

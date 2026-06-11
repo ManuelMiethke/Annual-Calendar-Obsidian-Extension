@@ -1,8 +1,13 @@
 .annual-matrix-view {
   --annual-matrix-label-width: clamp(3.2rem, 8vw, 4.6rem);
-  --annual-matrix-row-height: clamp(2rem, 4vh, 2.9rem);
+  --annual-matrix-row-height: clamp(3.35rem, 5.2vh, 4.05rem);
+  --annual-matrix-fixed-week-columns: repeat(37, minmax(0, 1fr));
   --annual-matrix-header-font-size: clamp(0.62rem, 0.85vw, 0.78rem);
-  --annual-matrix-cell-font-size: clamp(0.66rem, 0.95vw, 0.86rem);
+  --annual-matrix-cell-font-size: clamp(0.64rem, 0.82vw, 0.78rem);
+  --annual-matrix-surface: color-mix(in srgb, var(--background-primary) 90%, #10203c 10%);
+  --annual-matrix-surface-strong: color-mix(in srgb, var(--background-secondary) 72%, #162647 28%);
+  --annual-matrix-outline: color-mix(in srgb, var(--background-modifier-border) 72%, #6b88c4 28%);
+  --annual-matrix-cell-shadow: 0 10px 24px color-mix(in srgb, black 18%, transparent);
   height: 100%;
   min-height: 0;
   display: flex;
@@ -10,7 +15,8 @@
   gap: 1rem;
   padding: 1rem;
   background:
-    linear-gradient(180deg, color-mix(in srgb, var(--background-primary) 92%, var(--background-modifier-border) 8%), var(--background-primary));
+    radial-gradient(circle at top left, color-mix(in srgb, var(--interactive-accent) 16%, transparent), transparent 34%),
+    linear-gradient(180deg, color-mix(in srgb, var(--background-primary) 88%, #12213a 12%), var(--background-primary));
 }
 
 .annual-matrix-toolbar {
@@ -20,9 +26,11 @@
   justify-content: space-between;
   gap: 0.75rem;
   padding: 0.75rem 0.9rem;
-  border: 1px solid var(--background-modifier-border);
-  border-radius: 12px;
-  background: var(--background-secondary);
+  border: 1px solid var(--annual-matrix-outline);
+  border-radius: 16px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--annual-matrix-surface-strong) 92%, white 8%), var(--annual-matrix-surface));
+  box-shadow: var(--annual-matrix-cell-shadow);
 }
 
 .annual-matrix-toolbar-group {
@@ -41,16 +49,17 @@
 
 .annual-matrix-title {
   margin: 0;
-  font-size: 1.1rem;
-  font-weight: 600;
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
 }
 
 .annual-matrix-year-input {
   width: 7rem;
   padding: 0.45rem 0.6rem;
-  border: 1px solid var(--background-modifier-border);
+  border: 1px solid var(--annual-matrix-outline);
   border-radius: 8px;
-  background: var(--background-primary);
+  background: color-mix(in srgb, var(--background-primary) 88%, #0f1a2e 12%);
   color: var(--text-normal);
 }
 
@@ -61,9 +70,9 @@
   width: 2.25rem;
   height: 2.25rem;
   padding: 0;
-  border: 1px solid var(--background-modifier-border);
+  border: 1px solid var(--annual-matrix-outline);
   border-radius: 8px;
-  background: var(--background-primary);
+  background: color-mix(in srgb, var(--background-primary) 88%, #0f1a2e 12%);
   color: var(--text-normal);
 }
 
@@ -78,9 +87,9 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.65rem 0.9rem;
-  border: 1px dashed var(--background-modifier-border);
-  border-radius: 10px;
-  background: color-mix(in srgb, var(--background-secondary) 72%, var(--background-primary) 28%);
+  border: 1px solid color-mix(in srgb, var(--interactive-accent) 34%, var(--annual-matrix-outline) 66%);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--interactive-accent) 10%, var(--annual-matrix-surface) 90%);
 }
 
 .annual-matrix-block-panel {
@@ -88,9 +97,11 @@
   flex-direction: column;
   gap: 0.75rem;
   padding: 0.9rem;
-  border: 1px solid var(--background-modifier-border);
-  border-radius: 12px;
-  background: color-mix(in srgb, var(--background-secondary) 80%, var(--background-primary) 20%);
+  border: 1px solid var(--annual-matrix-outline);
+  border-radius: 16px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--annual-matrix-surface-strong) 80%, white 20%), var(--annual-matrix-surface));
+  box-shadow: var(--annual-matrix-cell-shadow);
 }
 
 .annual-matrix-block-panel-header {
@@ -102,7 +113,7 @@
 
 .annual-matrix-block-panel-title {
   margin: 0;
-  font-size: 0.95rem;
+  font-size: 1rem;
 }
 
 .annual-matrix-block-count {
@@ -111,8 +122,8 @@
   border-radius: 999px;
   text-align: center;
   font-size: 0.8rem;
-  color: var(--text-muted);
-  background: var(--background-primary);
+  color: var(--text-normal);
+  background: color-mix(in srgb, var(--background-primary) 72%, var(--interactive-accent) 28%);
 }
 
 .annual-matrix-block-empty {
@@ -126,16 +137,30 @@
   gap: 0.6rem;
 }
 
+.annual-matrix-panel-section {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.annual-matrix-panel-section-title {
+  margin: 0;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
 .annual-matrix-block-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
   padding: 0.75rem 0.85rem;
-  border: 1px solid var(--background-modifier-border);
+  border: 1px solid color-mix(in srgb, var(--annual-block-color, var(--interactive-accent)) 28%, var(--annual-matrix-outline) 72%);
   border-left: 4px solid var(--annual-block-color, var(--color-blue));
-  border-radius: 10px;
-  background: var(--background-primary);
+  border-radius: 12px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--background-primary) 84%, var(--annual-block-color, var(--interactive-accent)) 16%), var(--background-primary));
 }
 
 .annual-matrix-block-content {
@@ -150,6 +175,11 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
+}
+
+.annual-matrix-stamp-item-emoji {
+  font-size: 1.1rem;
+  line-height: 1;
 }
 
 .annual-matrix-block-swatch {
@@ -185,7 +215,8 @@
   flex: 1;
   min-height: 0;
   display: flex;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   padding-bottom: 0.5rem;
 }
 
@@ -196,10 +227,11 @@
   min-width: 0;
   grid-auto-rows: minmax(var(--annual-matrix-row-height), 1fr);
   grid-template-columns: var(--annual-matrix-label-width) repeat(31, minmax(0, 1fr));
-  border: 1px solid var(--background-modifier-border);
-  border-radius: 14px;
+  border: 1px solid var(--annual-matrix-outline);
+  border-radius: 18px;
   overflow: hidden;
-  background: var(--background-primary);
+  background: var(--annual-matrix-surface);
+  box-shadow: var(--annual-matrix-cell-shadow);
 }
 
 .annual-matrix-header-cell,
@@ -207,11 +239,12 @@
 .annual-matrix-day-cell {
   min-width: 0;
   min-height: var(--annual-matrix-row-height);
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-right: 1px solid var(--background-modifier-border);
-  border-bottom: 1px solid var(--background-modifier-border);
+  border-right: 1px solid color-mix(in srgb, var(--annual-matrix-outline) 82%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--annual-matrix-outline) 82%, transparent);
 }
 
 .annual-matrix-header-cell {
@@ -220,7 +253,8 @@
   z-index: 3;
   font-size: var(--annual-matrix-header-font-size);
   font-weight: 600;
-  background: color-mix(in srgb, var(--background-secondary) 88%, var(--background-primary) 12%);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--annual-matrix-surface-strong) 88%, white 12%), var(--annual-matrix-surface));
 }
 
 .annual-matrix-corner-cell {
@@ -239,18 +273,25 @@
   font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
-  background: color-mix(in srgb, var(--background-secondary) 92%, var(--background-primary) 8%);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--annual-matrix-surface-strong) 85%, var(--interactive-accent) 15%), var(--annual-matrix-surface));
+  color: var(--text-normal);
 }
 
 .annual-matrix-day-cell {
   position: relative;
+  display: block;
   padding: 0;
+  border-radius: 0;
   font: inherit;
   font-size: var(--annual-matrix-cell-font-size);
   font-variant-numeric: tabular-nums;
-  color: var(--text-muted);
-  background: color-mix(in srgb, var(--background-primary) 96%, var(--background-secondary) 4%);
+  color: var(--text-normal);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--background-primary) 90%, #16243f 10%), color-mix(in srgb, var(--background-primary) 96%, black 4%));
   cursor: pointer;
+  overflow: hidden;
+  isolation: isolate;
   transition:
     background-color 120ms ease,
     color 120ms ease,
@@ -260,75 +301,63 @@
 
 .annual-matrix-day-cell:hover {
   color: var(--text-normal);
-  background: color-mix(in srgb, var(--interactive-accent) 10%, var(--background-primary) 90%);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--interactive-accent) 18%, var(--background-primary) 82%), color-mix(in srgb, var(--background-primary) 92%, black 8%));
 }
 
 .annual-matrix-day-cell:focus-visible {
   outline: none;
-  box-shadow: inset 0 0 0 2px var(--interactive-accent);
+  box-shadow:
+    inset 0 0 0 2px var(--interactive-accent),
+    0 0 0 1px color-mix(in srgb, var(--interactive-accent) 35%, transparent);
   color: var(--text-normal);
 }
 
 .annual-matrix-day-cell.is-invalid {
   cursor: default;
   color: var(--text-faint);
-  background: color-mix(in srgb, var(--background-primary) 74%, var(--background-modifier-border) 26%);
+  background: color-mix(in srgb, var(--background-primary) 68%, #22314f 32%);
 }
 
 .annual-matrix-day-cell.is-past {
-  color: var(--text-faint);
-  background: color-mix(in srgb, var(--background-secondary) 55%, var(--background-primary) 45%);
+  color: color-mix(in srgb, var(--text-normal) 72%, var(--text-muted) 28%);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--background-secondary) 52%, #182941 48%), color-mix(in srgb, var(--background-primary) 94%, black 6%));
 }
 
 .annual-matrix-day-cell.is-weekend {
-  background: color-mix(in srgb, var(--background-primary) 88%, var(--background-modifier-hover) 12%);
-}
-
-.annual-matrix-day-cell.has-note {
-  color: var(--text-normal);
-  background: color-mix(in srgb, var(--color-green) 14%, var(--background-primary) 86%);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--background-primary) 80%, #2f3f61 20%), color-mix(in srgb, var(--background-primary) 94%, black 6%));
 }
 
 .annual-matrix-day-cell.has-block {
-  color: var(--text-normal);
-  background: color-mix(in srgb, var(--annual-block-color, var(--color-blue)) 18%, var(--background-primary) 82%);
   box-shadow: none;
-}
-
-.annual-matrix-day-cell.has-multiple-blocks {
-  box-shadow: none;
-}
-
-.annual-matrix-day-cell.has-block-start {
-  border-top-left-radius: 999px;
-  border-bottom-left-radius: 999px;
-  border-right-color: transparent;
-}
-
-.annual-matrix-day-cell.has-block-middle {
-  border-radius: 0;
-  border-right-color: transparent;
-}
-
-.annual-matrix-day-cell.has-block-end {
-  border-top-right-radius: 999px;
-  border-bottom-right-radius: 999px;
 }
 
 .annual-matrix-day-cell.is-today {
-  color: var(--text-on-accent);
-  background: var(--interactive-accent);
+  color: var(--text-normal);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--interactive-accent) 26%, var(--background-primary) 74%), color-mix(in srgb, var(--background-primary) 92%, black 8%));
+  box-shadow:
+    inset 0 0 0 2px color-mix(in srgb, var(--interactive-accent) 74%, white 26%),
+    inset 0 0 26px color-mix(in srgb, var(--interactive-accent) 18%, transparent);
   font-weight: 700;
 }
 
 .annual-matrix-day-cell.is-today:hover,
 .annual-matrix-day-cell.is-today:focus-visible {
-  background: color-mix(in srgb, var(--interactive-accent) 86%, black 14%);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--interactive-accent) 34%, var(--background-primary) 66%), color-mix(in srgb, var(--background-primary) 90%, black 10%));
 }
 
 .annual-matrix-day-cell.is-selected {
   color: var(--text-normal);
-  background: color-mix(in srgb, var(--interactive-accent) 18%, var(--background-primary) 82%);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--interactive-accent) 20%, var(--background-primary) 80%), color-mix(in srgb, var(--background-primary) 90%, black 10%));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--interactive-accent) 55%, transparent);
+}
+
+.annual-matrix-day-cell.has-block.is-selected {
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--interactive-accent) 55%, transparent);
 }
 
@@ -336,6 +365,129 @@
 .annual-matrix-day-cell.is-selection-end {
   font-weight: 700;
   box-shadow: inset 0 0 0 2px var(--interactive-accent);
+}
+
+.annual-matrix-cell-head {
+  position: absolute;
+  top: 0.18rem;
+  left: 0.22rem;
+  right: 0.22rem;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: 1.2rem minmax(0, 1fr) 0.5rem;
+  align-items: start;
+  min-height: 0.8rem;
+}
+
+.annual-matrix-day-number {
+  position: static;
+  justify-self: start;
+  font-weight: 500;
+  font-size: 0.72em;
+  line-height: 1;
+}
+
+.annual-matrix-day-weekday {
+  position: static;
+  justify-self: center;
+  transform: none;
+  font-size: 0.48em;
+  color: var(--text-muted);
+  letter-spacing: 0.01em;
+  font-weight: 400;
+  line-height: 1.1;
+}
+
+.annual-matrix-stamp-row {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  right: auto;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.18rem;
+  pointer-events: none;
+}
+
+.annual-matrix-stamp-badge,
+.annual-matrix-stamp-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.02rem;
+  height: 1.02rem;
+  padding: 0 0.18rem;
+  border-radius: 999px;
+  background: transparent;
+  color: color-mix(in srgb, var(--annual-stamp-color, #f59e0b) 88%, white 12%);
+  box-shadow: none;
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.annual-matrix-stamp-count {
+  min-width: 0.78rem;
+  height: 0.78rem;
+  padding: 0 0.14rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--annual-stamp-color, #f59e0b) 20%, var(--background-primary) 80%);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--annual-stamp-color, #f59e0b) 22%, transparent);
+  font-size: 0.48rem;
+}
+
+.annual-matrix-block-bar {
+  position: absolute;
+  right: -2px;
+  left: -2px;
+  bottom: 0.08rem;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-height: 0.68rem;
+  padding: 0 0.28rem;
+  border: none;
+  border-radius: 0;
+  background: color-mix(in srgb, var(--annual-block-color, var(--interactive-accent)) 88%, white 12%);
+  box-shadow: none;
+  pointer-events: none;
+  overflow: hidden;
+  height: 0.68rem;
+  bottom: calc(0.08rem + (var(--annual-block-lane, 0) * 0.82rem));
+}
+
+.annual-matrix-block-label {
+  position: static;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #f7fbff;
+  max-width: 100%;
+  font-size: 0.56rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1;
+}
+
+.annual-matrix-block-label.is-continuation {
+  color: color-mix(in srgb, #f7fbff 58%, var(--annual-block-color, var(--interactive-accent)) 42%);
+}
+
+.annual-matrix-block-bar.is-segment-start {
+  border-top-left-radius: 999px;
+  border-bottom-left-radius: 999px;
+}
+
+.annual-matrix-block-bar.is-segment-middle {
+  border-radius: 0;
+}
+
+.annual-matrix-block-bar.is-segment-end {
+  border-top-right-radius: 999px;
+  border-bottom-right-radius: 999px;
 }
 
 .annual-matrix-modal-description {
@@ -365,39 +517,27 @@
   min-height: 100%;
   min-width: 0;
   grid-auto-rows: minmax(var(--annual-matrix-row-height), 1fr);
-  grid-template-columns: var(--annual-matrix-label-width) repeat(31, minmax(0, 1fr));
-  border: 1px solid var(--background-modifier-border);
-  border-radius: 14px;
+  grid-template-columns: var(--annual-matrix-label-width) var(--annual-matrix-fixed-week-columns);
+  border: 1px solid var(--annual-matrix-outline);
+  border-radius: 18px;
   overflow: hidden;
-  background: var(--background-primary);
+  background: var(--annual-matrix-surface);
+  box-shadow: var(--annual-matrix-cell-shadow);
 }
 
-.annual-matrix-fixed-weekday-header,
-.annual-matrix-fixed-week-empty-cell {
-  min-height: 2.9rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-right: 1px solid var(--background-modifier-border);
-  border-bottom: 1px solid var(--background-modifier-border);
-  background: color-mix(in srgb, var(--background-secondary) 90%, var(--background-primary) 10%);
-  color: var(--text-muted);
-  font-size: 0.78rem;
+.annual-matrix-fixed-week-header {
+  font-size: 0.72rem;
+  text-transform: uppercase;
 }
 
-.annual-matrix-fixed-weekday-header {
-  font-size: 0.74rem;
-  font-weight: 600;
-  min-height: 2.2rem;
-}
-
-.annual-matrix-fixed-week-empty-cell {
-  background: color-mix(in srgb, var(--background-primary) 92%, var(--background-modifier-border) 8%);
+.annual-matrix-fixed-week-empty {
+  background: color-mix(in srgb, var(--background-primary) 78%, #1d2a43 22%);
 }
 
 @media (max-width: 900px) {
   .annual-matrix-view {
     padding: 0.75rem;
+    --annual-matrix-row-height: 3.1rem;
   }
 
   .annual-matrix-toolbar {
@@ -406,5 +546,15 @@
 
   .annual-matrix-title {
     font-size: 1rem;
+  }
+
+  .annual-matrix-block-bar {
+    left: -2px;
+    right: -2px;
+    bottom: calc(0.06rem + (var(--annual-block-lane, 0) * 0.78rem));
+  }
+
+  .annual-matrix-block-label {
+    font-size: 0.52rem;
   }
 }

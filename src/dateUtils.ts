@@ -93,6 +93,8 @@ export function getMonthNames(): readonly string[] {
 }
 
 const WEEKDAY_NAMES = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"] as const;
+const WEEKDAY_INITIALS_EN_SUNDAY_FIRST = ["S", "M", "T", "W", "T", "F", "S"] as const;
+const WEEKDAY_INITIALS_DE_SUNDAY_FIRST = ["S", "M", "D", "M", "D", "F", "S"] as const;
 
 export function getWeekdayNames(): readonly string[] {
   return WEEKDAY_NAMES;
@@ -101,4 +103,8 @@ export function getWeekdayNames(): readonly string[] {
 export function getWeekdayNameForDate(year: number, monthIndex: number, day: number): string {
   const weekdayIndex = (new Date(year, monthIndex, day).getDay() + 6) % 7;
   return WEEKDAY_NAMES[weekdayIndex];
+}
+
+export function getWeekdayInitialsSundayFirst(language: "de" | "en"): readonly string[] {
+  return language === "de" ? WEEKDAY_INITIALS_DE_SUNDAY_FIRST : WEEKDAY_INITIALS_EN_SUNDAY_FIRST;
 }

@@ -11,6 +11,8 @@ export class AnnualBlockModal extends Modal {
   private readonly endDate: string;
   private readonly onSubmit: (result: AnnualBlockModalResult) => Promise<void>;
   private readonly onCancel: () => void;
+  private readonly categoryPresets: Record<string, string>;
+  private readonly categorySuggestions: string[];
 
   private titleValue: string;
   private categoryValue = "";
@@ -20,12 +22,16 @@ export class AnnualBlockModal extends Modal {
     app: App,
     startDate: string,
     endDate: string,
+    categoryPresets: Record<string, string>,
+    categorySuggestions: string[],
     onSubmit: (result: AnnualBlockModalResult) => Promise<void>,
     onCancel: () => void,
   ) {
     super(app);
     this.startDate = startDate;
     this.endDate = endDate;
+    this.categoryPresets = categoryPresets;
+    this.categorySuggestions = categorySuggestions;
     this.onSubmit = onSubmit;
     this.onCancel = onCancel;
     this.titleValue = startDate === endDate ? startDate : `${startDate} -> ${endDate}`;
@@ -53,18 +59,6 @@ export class AnnualBlockModal extends Modal {
           }),
       );
 
-    new Setting(contentEl)
-      .setName("Category")
-      .setDesc("Optional group or theme.")
-      .addText((text) =>
-        text
-          .setPlaceholder("travel")
-          .setValue(this.categoryValue)
-          .onChange((value) => {
-            this.categoryValue = value;
-          }),
-      );
-
     const colorSetting = new Setting(contentEl).setName("Color").setDesc("Used to tint the selected cells.");
     const colorInput = colorSetting.controlEl.createEl("input", {
       cls: "annual-matrix-color-input",
@@ -77,6 +71,26 @@ export class AnnualBlockModal extends Modal {
     colorInput.addEventListener("input", () => {
       this.colorValue = colorInput.value;
     });
+
+    const categoryListId = `annual-matrix-category-presets-${Date.now()}`;
+    const categorySetting = new Setting(contentEl)
+      .setName("Category")
+      .setDesc("Optional group or theme. Saved categories reuse their color automatically.");
+    categorySetting.addText((text) => {
+      text
+        .setPlaceholder("travel")
+        .setValue(this.categoryValue)
+        .onChange((value) => {
+          this.categoryValue = value;
+          this.applyPresetColor(value, colorInput);
+        });
+      text.inputEl.setAttr("list", categoryListId);
+    });
+
+    const categoryList = contentEl.createEl("datalist", { attr: { id: categoryListId } });
+    for (const category of this.categorySuggestions) {
+      categoryList.createEl("option", { attr: { value: category } });
+    }
 
     const buttonRow = contentEl.createDiv({ cls: "annual-matrix-modal-actions" });
 
@@ -118,5 +132,15 @@ export class AnnualBlockModal extends Modal {
       color: this.colorValue,
     });
     this.close();
+  }
+
+  private applyPresetColor(category: string, colorInput: HTMLInputElement): void {
+    const presetColor = this.categoryPresets[category.trim().toLowerCase()];
+    if (!presetColor) {
+      return;
+    }
+
+    this.colorValue = presetColor;
+    colorInput.value = presetColor;
   }
 }
