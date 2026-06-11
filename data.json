@@ -3,7 +3,7 @@
     "dailyNotesFolder": "Daily Notes",
     "dateFormat": "YYYY-MM-DD",
     "monthLanguage": "de",
-    "viewMode": "fixed-week",
+    "viewMode": "matrix",
     "highlightWeekends": true,
     "highlightToday": true,
     "showPastVisualization": true,

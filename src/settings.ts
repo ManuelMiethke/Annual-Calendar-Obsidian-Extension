@@ -6,7 +6,7 @@ import type { AnnualMatrixSettings } from "./types";
 export const DEFAULT_SETTINGS: AnnualMatrixSettings = {
   dailyNotesFolder: "Daily Notes",
   dateFormat: "YYYY-MM-DD",
-  monthLanguage: "de",
+  monthLanguage: "en",
   viewMode: "matrix",
   highlightWeekends: true,
   highlightToday: true,
@@ -49,20 +49,6 @@ export class AnnualMatrixSettingTab extends PluginSettingTab {
         await this.plugin.savePluginData();
       },
     );
-
-    new Setting(containerEl)
-      .setName("Month Language")
-      .setDesc("Language used for month labels in the matrix.")
-      .addDropdown((dropdown) =>
-        dropdown
-          .addOption("de", "German")
-          .addOption("en", "English")
-          .setValue(this.plugin.settings.monthLanguage)
-          .onChange(async (value) => {
-            this.plugin.settings.monthLanguage = value === "en" ? "en" : "de";
-            await this.plugin.savePluginData();
-          }),
-      );
 
     new Setting(containerEl)
       .setName("View mode")

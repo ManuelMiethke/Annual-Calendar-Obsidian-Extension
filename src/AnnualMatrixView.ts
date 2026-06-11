@@ -205,7 +205,7 @@ export class AnnualMatrixView extends ItemView {
       });
     }
 
-    const monthNames = getMonthNames(this.plugin.settings.monthLanguage);
+    const monthNames = getMonthNames();
 
     for (let monthIndex = 0; monthIndex < 12; monthIndex += 1) {
       grid.createDiv({
@@ -232,8 +232,8 @@ export class AnnualMatrixView extends ItemView {
     const gridWrapper = container.createDiv({ cls: "annual-matrix-grid-wrapper" });
     const sections = gridWrapper.createDiv({ cls: "annual-matrix-fixed-week-grid" });
 
-    const monthNames = getMonthNames(this.plugin.settings.monthLanguage);
-    const weekdayNames = getWeekdayNames(this.plugin.settings.monthLanguage);
+    const monthNames = getMonthNames();
+    const weekdayNames = getWeekdayNames();
 
     for (let monthIndex = 0; monthIndex < 12; monthIndex += 1) {
       const section = sections.createDiv({ cls: "annual-matrix-fixed-month" });
@@ -246,7 +246,7 @@ export class AnnualMatrixView extends ItemView {
 
       const monthGrid = section.createDiv({ cls: "annual-matrix-fixed-month-grid" });
       monthGrid.style.setProperty("--annual-fixed-week-columns", "repeat(7, minmax(2.2rem, 1fr))");
-      monthGrid.style.setProperty("--annual-fixed-week-rows", "repeat(6, minmax(0, 1fr))");
+      monthGrid.style.setProperty("--annual-fixed-week-rows", "auto repeat(6, minmax(0, 1fr))");
 
       for (const weekdayName of weekdayNames) {
         monthGrid.createDiv({
@@ -257,6 +257,13 @@ export class AnnualMatrixView extends ItemView {
 
       const daysInMonth = getDaysInMonth(this.displayYear, monthIndex);
       const firstWeekdayOffset = (new Date(this.displayYear, monthIndex, 1).getDay() + 6) % 7;
+
+      for (let weekdayColumn = 0; weekdayColumn < 7; weekdayColumn += 1) {
+        monthGrid.createDiv({
+          cls: "annual-matrix-fixed-weekday-header",
+          text: weekdayNames[weekdayColumn],
+        });
+      }
 
       for (let slot = 0; slot < 42; slot += 1) {
         const day = slot - firstWeekdayOffset + 1;

@@ -1,33 +1,17 @@
-const MONTH_NAMES = {
-  de: [
-    "Januar",
-    "Februar",
-    "März",
-    "April",
-    "Mai",
-    "Juni",
-    "Juli",
-    "August",
-    "September",
-    "Oktober",
-    "November",
-    "Dezember",
-  ],
-  en: [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
-  ],
-} as const;
+const MONTH_NAMES = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+] as const;
 
 export function isLeapYear(year: number): boolean {
   return year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
@@ -104,15 +88,12 @@ export function isWeekend(year: number, monthIndex: number, day: number): boolea
   return weekday === 0 || weekday === 6;
 }
 
-export function getMonthNames(language: "de" | "en"): readonly string[] {
-  return MONTH_NAMES[language];
+export function getMonthNames(): readonly string[] {
+  return MONTH_NAMES;
 }
 
-const WEEKDAY_NAMES = {
-  de: ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"],
-  en: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-} as const;
+const WEEKDAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
 
-export function getWeekdayNames(language: "de" | "en"): readonly string[] {
-  return WEEKDAY_NAMES[language];
+export function getWeekdayNames(): readonly string[] {
+  return WEEKDAY_NAMES;
 }
